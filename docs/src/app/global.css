@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+:root {
+  --fd-layout-width: 100%;
+}
+
+@media (width >= 80rem) {
+  #nd-docs-layout, #nd-notebook-layout {
+    --fd-sidebar-width: 300px !important;
+    --fd-toc-width: 350px !important;
+  }
+}
+
+.func-heading-content h4 {
+  margin-top: 0em !important;
+}
+
+.func-heading-line span.line {
+  padding: 0.4em !important;
+}

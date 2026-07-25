@@ -1,0 +1,8 @@
+{
+  "title": "Documentation",
+  "root": false,
+  "pages": [
+    "---Getting Started---",
+    "index"
+  ]
+}
