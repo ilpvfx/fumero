@@ -12,6 +12,8 @@ dependencies = []
 [dependency-groups]
 dev = [
   "pytest>=9.1.1",
+  "ruff>=0.16.0",
+  "ty>=0.0.63",
 ]
 
 [build-system]
@@ -20,3 +22,6 @@ build-backend = "uv_build"
 
 [project.scripts]
 fumero = "fumero.tools.fumero:main"
+
+[tool.ruff]
+line-length = 100

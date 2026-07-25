@@ -16,4 +16,16 @@
       venv.enable = true;
     };
   };
+
+  git-hooks.hooks = {
+    ruff.enable = true;
+
+    ty = {
+      enable = true;
+      name = "ty";
+      entry = "uv run ty check";
+      files = "\\.py$";
+      pass_filenames = false;
+    };
+  };
 }
