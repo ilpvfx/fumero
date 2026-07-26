@@ -14,12 +14,14 @@ import griffe
 
 from .config import Config
 from .error import ModuleNotFound
-from .model import Admonition, ParsedDocstring, Property
+from .model import Admonition, Class, Function, ParsedDocstring, Property
 
 __all__ = [
     "load_module",
     "module_attributes",
+    "parse_class",
     "parse_docstring",
+    "parse_function",
     "parse_function_definition",
     "public_members",
     "remove_prefix",
@@ -111,6 +113,120 @@ def module_attributes(module: griffe.Module, config: Config) -> list[Property]:
     ]
 
     return sorted(attributes, key=lambda attribute: attribute.name)
+
+
+def parse_class(cls: griffe.Class, config: Config | None = None) -> Class:
+    """A class and everything documented on its page.
+
+    Nested classes are read too, since each one gets a page of its own. Methods and attributes are
+    sorted by name, because declaration order is an implementation detail and a reader looking for
+    one member wants to know where to find it.
+
+    Args:
+        cls: The class to read.
+        config: Supplies the exclude patterns applied to its members. Without one, only the
+            leading-underscore rule filters them.
+
+    Returns:
+        The parsed class.
+    """
+
+    config = config or Config()
+
+    functions = [
+        parse_function(function)
+        for function in cls.functions.values()
+        if not function.name.startswith("_") and not config.excludes(function)
+    ]
+
+    classes = [
+        parse_class(cast(griffe.Class, member), config)
+        for member in cls.members.values()
+        if member.kind is griffe.Kind.CLASS
+        and not member.name.startswith("_")
+        and not config.excludes(member)
+    ]
+
+    docstring = parse_docstring(cls)
+    described = {entry.name: entry.description for entry in docstring.attributes}
+    attributes = [
+        _attribute_property(
+            attribute,
+            attribute.docstring.value if attribute.docstring else described.get(attribute.name),
+        )
+        for attribute in cls.attributes.values()
+        if not attribute.name.startswith("_") and not config.excludes(attribute)
+    ]
+
+    return Class(
+        name=cls.name,
+        docstring=docstring,
+        constructor=_constructor(cls, docstring.parameters, attributes),
+        attributes=attributes,
+        functions=sorted(functions, key=lambda function: function.name),
+        classes=sorted(classes, key=lambda nested: nested.name),
+    )
+
+
+def parse_function(function: griffe.Function) -> Function:
+    """A function or a method, with its signature, its docstring, and its source.
+
+    Args:
+        function: The function to read.
+
+    Returns:
+        The parsed function. Its source is empty when the file it came from cannot be read.
+    """
+
+    try:
+        source = function.source or ""
+    except (KeyError, OSError, ValueError):
+        source = ""
+
+    return Function(
+        name=function.name,
+        docstring=parse_docstring(function),
+        definition=parse_function_definition(function),
+        source=source,
+    )
+
+
+def _constructor(
+    cls: griffe.Class, documented: list[Property], attributes: list[Property]
+) -> Function | None:
+    """`__init__` or `__new__`, with the descriptions the class docstring gave its parameters.
+
+    Google style documents constructor arguments on the class rather than on `__init__`, and a
+    dataclass gets an `__init__` synthesised with no docstring at all, so the prose lives on the
+    class far more often than on the function.
+
+    A dataclass field is both an attribute and a constructor parameter, so an `Attributes:` entry
+    describes the parameter of the same name. That saves writing each description twice and then
+    keeping the two copies in step. An explicit `Args:` still wins where there is one.
+    """
+
+    for name in ("__init__", "__new__"):
+        member = cls.members.get(name)
+
+        # a class member is an Alias pointing at the function, never a Function, so this is
+        # matched on kind rather than by type
+        if member is None or member.kind is not griffe.Kind.FUNCTION:
+            continue
+
+        function = parse_function(cast(griffe.Function, member))
+
+        descriptions = {entry.name: entry.description for entry in attributes if entry.description}
+        descriptions.update({
+            entry.name: entry.description for entry in documented if entry.description
+        })
+
+        for parameter in function.docstring.parameters:
+            if parameter.description is None:
+                parameter.description = descriptions.get(parameter.name)
+
+        return function
+
+    return None
 
 
 def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> ParsedDocstring:

@@ -11,7 +11,9 @@ from fumero.error import ModuleNotFound
 from fumero.parse import (
     load_module,
     module_attributes,
+    parse_class,
     parse_docstring,
+    parse_function,
     parse_function_definition,
     public_members,
     remove_prefix,
@@ -129,6 +131,149 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
     assert [attribute.name for attribute in attributes] == ["ROOT", "TIMEOUT"]
     assert attributes[0].annotation == "Path"
     assert attributes[1].value == "30"
+
+
+def test_parse_class_lists_public_methods_sorted(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Client:
+            """A connection."""
+
+            def send(self) -> None: ...
+
+            def close(self) -> None: ...
+
+            def _retry(self) -> None: ...
+    ''')
+
+    parsed = parse_class(cast(griffe.Class, module["Client"]))
+
+    assert [function.name for function in parsed.functions] == ["close", "send"]
+
+
+def test_parse_class_drops_excluded_members(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Client:
+            """A connection."""
+
+            host: str = "localhost"
+            port: int = 8080
+
+            def send(self) -> None: ...
+
+            def close(self) -> None: ...
+    ''')
+
+    parsed = parse_class(cast(griffe.Class, module["Client"]), Config(exclude=("close", "port")))
+
+    assert [function.name for function in parsed.functions] == ["send"]
+    assert [attribute.name for attribute in parsed.attributes] == ["host"]
+
+
+def test_parse_class_describes_constructor_parameters_from_the_class_docstring(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit('''
+        class Client:
+            """A connection.
+
+            Args:
+                host: Where to connect.
+            """
+
+            def __init__(self, host: str) -> None: ...
+    ''')
+
+    parsed = parse_class(cast(griffe.Class, module["Client"]))
+
+    assert parsed.constructor is not None
+    assert parsed.constructor.name == "__init__"
+    assert [entry.description for entry in parsed.constructor.docstring.parameters] == [
+        "Where to connect."
+    ]
+
+
+def test_parse_class_describes_dataclass_parameters_from_its_attributes(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit('''
+        from dataclasses import dataclass
+
+
+        @dataclass
+        class Client:
+            """A connection.
+
+            Attributes:
+                host: Where to connect.
+            """
+
+            host: str = "localhost"
+    ''')
+
+    parsed = parse_class(cast(griffe.Class, module["Client"]))
+
+    assert parsed.attributes[0].description == "Where to connect."
+
+
+def test_parse_class_prefers_an_attributes_own_docstring(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Client:
+            """A connection.
+
+            Attributes:
+                host: Named by the section.
+            """
+
+            host: str = "localhost"
+            """Named by the attribute."""
+    ''')
+
+    parsed = parse_class(cast(griffe.Class, module["Client"]))
+
+    assert parsed.attributes[0].description == "Named by the attribute."
+
+
+def test_parse_class_without_a_constructor(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Timeout(Exception):
+            """The host did not answer."""
+    ''')
+
+    assert parse_class(cast(griffe.Class, module["Timeout"])).constructor is None
+
+
+def test_parse_class_collects_nested_classes(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Client:
+            """A connection."""
+
+            class Options:
+                """How to connect."""
+
+            class _Internal:
+                """Not documented."""
+    ''')
+
+    parsed = parse_class(cast(griffe.Class, module["Client"]))
+
+    assert [nested.name for nested in parsed.classes] == ["Options"]
+    assert parsed.classes[0].docstring.description == "How to connect."
+
+
+def test_parse_function_reads_its_signature_docstring_and_source(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit('''
+        def connect(host: str) -> None:
+            """Open a connection."""
+    ''')
+
+    function = parse_function(cast(griffe.Function, module["connect"]))
+
+    assert function.name == "connect"
+    assert function.definition == "def connect(host: str) -> None"
+    assert function.docstring.description == "Open a connection."
+    assert function.source.startswith("def connect(host: str) -> None:")
 
 
 def test_parse_docstring_takes_parameters_from_the_signature(
