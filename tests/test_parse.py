@@ -1,9 +1,22 @@
+from collections.abc import Callable
 from pathlib import Path
+from textwrap import dedent
 
+import griffe
 import pytest
 
+from fumero.config import Config
 from fumero.error import ModuleNotFound
-from fumero.parse import load_module, remove_prefix
+from fumero.parse import load_module, module_attributes, public_members, remove_prefix
+
+
+@pytest.fixture
+def visit() -> Callable[[str], griffe.Module]:
+    def visited(source: str) -> griffe.Module:
+        with griffe.temporary_visited_module(dedent(source), module_name="example") as module:
+            return module
+
+    return visited
 
 
 def test_load_module_reads_a_package_on_the_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -24,6 +37,88 @@ def test_load_module_reports_a_module_it_cannot_import():
         _ = load_module("example_that_is_not_installed")
 
     assert raised.value.name == "example_that_is_not_installed"
+
+
+@pytest.mark.parametrize(
+    "kind, expected",
+    [
+        pytest.param(griffe.Kind.CLASS, ["Client"], id="class"),
+        pytest.param(griffe.Kind.FUNCTION, ["connect"], id="function"),
+        pytest.param(griffe.Kind.ATTRIBUTE, ["TIMEOUT"], id="attribute"),
+    ],
+)
+def test_public_members_select_one_kind(
+    visit: Callable[[str], griffe.Module], kind: griffe.Kind, expected: list[str]
+):
+    module = visit("""
+        TIMEOUT = 30
+
+
+        class Client: ...
+
+
+        def connect() -> None: ...
+    """)
+
+    assert [member.name for member in public_members(module, kind, Config())] == expected
+
+
+def test_public_members_follow_dunder_all(visit: Callable[[str], griffe.Module]):
+    module = visit("""
+        __all__ = ["Client"]
+
+
+        class Client: ...
+
+
+        class Server: ...
+    """)
+
+    members = public_members(module, griffe.Kind.CLASS, Config())
+
+    assert [member.name for member in members] == ["Client"]
+
+
+def test_public_members_treat_underscored_names_as_private(visit: Callable[[str], griffe.Module]):
+    module = visit("""
+        def connect() -> None: ...
+
+
+        def _retry() -> None: ...
+    """)
+
+    members = public_members(module, griffe.Kind.FUNCTION, Config())
+
+    assert [member.name for member in members] == ["connect"]
+
+
+def test_public_members_drop_excluded_members(visit: Callable[[str], griffe.Module]):
+    module = visit("""
+        class Client: ...
+
+
+        class Server: ...
+    """)
+
+    members = public_members(module, griffe.Kind.CLASS, Config(exclude=("*.Server",)))
+
+    assert [member.name for member in members] == ["Client"]
+
+
+def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.Module]):
+    module = visit("""
+        import pathlib
+
+        TIMEOUT: int = 30
+        ROOT: pathlib.Path = pathlib.Path(".")
+        _CACHE: dict[str, str] = {}
+    """)
+
+    attributes = module_attributes(module, Config())
+
+    assert [attribute.name for attribute in attributes] == ["ROOT", "TIMEOUT"]
+    assert attributes[0].annotation == "Path"
+    assert attributes[1].value == "30"
 
 
 @pytest.mark.parametrize(
