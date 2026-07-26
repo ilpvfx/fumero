@@ -7,7 +7,9 @@ authors = [
   { name = "Ludvig Holmkvist", email = "ludvig.holmkvist@ilpvfx.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "griffe>=2.1.0",
+]
 
 [dependency-groups]
 dev = [
