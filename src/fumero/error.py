@@ -15,8 +15,8 @@ class FumeroException(Exception):
 class ModuleNotFound(FumeroException):
     """A module could not be imported, so there is nothing to document.
 
-    Reading a module means importing it, so it has to be installed in the environment fumero runs
-    in. Sitting in a directory nearby is not enough.
+    Raised by [`load_module`]. Reading a module means importing it, so it has to be installed in
+    the environment fumero runs in. Sitting in a directory nearby is not enough.
 
     Attributes:
         name: The module path that could not be imported.
