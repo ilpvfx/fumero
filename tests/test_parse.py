@@ -1,13 +1,20 @@
 from collections.abc import Callable
 from pathlib import Path
 from textwrap import dedent
+from typing import cast
 
 import griffe
 import pytest
 
 from fumero.config import Config
 from fumero.error import ModuleNotFound
-from fumero.parse import load_module, module_attributes, public_members, remove_prefix
+from fumero.parse import (
+    load_module,
+    module_attributes,
+    parse_function_definition,
+    public_members,
+    remove_prefix,
+)
 
 
 @pytest.fixture
@@ -119,6 +126,87 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
     assert [attribute.name for attribute in attributes] == ["ROOT", "TIMEOUT"]
     assert attributes[0].annotation == "Path"
     assert attributes[1].value == "30"
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        pytest.param(
+            "def connect(host: str) -> None: ...",
+            "def connect(host: str) -> None",
+            id="annotated",
+        ),
+        pytest.param("def connect(host): ...", "def connect(host)", id="unannotated"),
+        pytest.param(
+            "def connect(host: str = 'localhost'): ...",
+            "def connect(host: str = 'localhost')",
+            id="annotated default",
+        ),
+        pytest.param(
+            "def connect(host='localhost'): ...",
+            "def connect(host='localhost')",
+            id="unannotated default",
+        ),
+        pytest.param(
+            "def connect(*args, **kwargs): ...",
+            "def connect(*args, **kwargs)",
+            id="variadic",
+        ),
+        pytest.param(
+            "def connect(host, /, port, *, timeout): ...",
+            "def connect(host, /, port, *, timeout)",
+            id="kind markers",
+        ),
+        pytest.param(
+            "def connect(host, /): ...",
+            "def connect(host, /)",
+            id="trailing positional marker",
+        ),
+        pytest.param(
+            "import pathlib\n\n\ndef connect() -> pathlib.Path: ...",
+            "def connect() -> Path",
+            id="return annotation",
+        ),
+    ],
+)
+def test_parse_function_definition(
+    visit: Callable[[str], griffe.Module], source: str, expected: str
+):
+    function = cast(griffe.Function, visit(source)["connect"])
+
+    assert parse_function_definition(function) == expected
+
+
+def test_parse_function_definition_drops_the_receiver(visit: Callable[[str], griffe.Module]):
+    module = visit("""
+        class Client:
+            def connect(self, host: str) -> None: ...
+    """)
+
+    function = cast(griffe.Function, module["Client.connect"])
+
+    assert parse_function_definition(function) == "def connect(host: str) -> None"
+
+
+def test_parse_function_definition_wraps_a_long_signature(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit("""
+        def connect(
+            host: str, port: int, timeout: float, retries: int, backoff: float
+        ) -> None: ...
+    """)
+
+    function = cast(griffe.Function, module["connect"])
+
+    assert parse_function_definition(function) == dedent("""\
+        def connect(
+            host: str,
+            port: int,
+            timeout: float,
+            retries: int,
+            backoff: float,
+        ) -> None""")
 
 
 @pytest.mark.parametrize(

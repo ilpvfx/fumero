@@ -16,7 +16,13 @@ from .config import Config
 from .error import ModuleNotFound
 from .model import Property
 
-__all__ = ["load_module", "module_attributes", "public_members", "remove_prefix"]
+__all__ = [
+    "load_module",
+    "module_attributes",
+    "parse_function_definition",
+    "public_members",
+    "remove_prefix",
+]
 
 _MODULE_PREFIX_RE = re.compile(r"(?:[a-z_][a-z0-9_]*\.)+([A-Z][A-Za-z0-9_]*)")
 
@@ -106,6 +112,112 @@ def module_attributes(module: griffe.Module, config: Config) -> list[Property]:
     return sorted(attributes, key=lambda attribute: attribute.name)
 
 
+def parse_function_definition(function: griffe.Function, width: int = 84) -> str:
+    """The `def` line as documentation shows it, rather than as the interpreter sees it.
+
+    A leading `self` or `cls` is dropped, because it is not something a caller passes, and there is
+    no trailing colon, because this is a thing to read rather than a line to run.
+
+    A definition too long for `width` breaks one parameter to a line. That is the only reason a
+    long signature can be shown at all: on one line a fifteen-parameter constructor is a horizontal
+    scrollbar, and the same thing wrapped is a list you can read down.
+
+    Args:
+        function: The function to describe.
+        width: The column to break the line at.
+
+    Returns:
+        A definition, on one line where it fits and on several where it does not.
+
+    Examples:
+        ```python
+        parse_function_definition(function)
+        # 'def connect(host: str, port: int = 8080) -> None'
+        ```
+    """
+
+    parts = _parameter_parts(function)
+    returns = f" -> {remove_prefix(str(function.annotation))}" if function.annotation else ""
+    head = f"def {function.name}("
+
+    one_line = f"{head}{', '.join(parts)}){returns}"
+    if len(one_line) <= width:
+        return one_line
+
+    # black's shape: one parameter to a line, a trailing comma, and the closing parenthesis
+    # carrying the return type
+    body = "".join(f"    {part},\n" for part in parts)
+
+    return f"{head}\n{body}){returns}"
+
+
+def _parameter_parts(function: griffe.Function) -> list[str]:
+    """Each parameter as a definition writes it, with the markers that separate the kinds."""
+
+    parts: list[str] = []
+    parameters = _callable_parameters(function)
+
+    has_positional_only = any(
+        parameter.kind is griffe.ParameterKind.positional_only for parameter in parameters
+    )
+    positional_only_closed = False
+    keyword_only_opened = False
+
+    for parameter in parameters:
+        if (
+            has_positional_only
+            and not positional_only_closed
+            and parameter.kind is not griffe.ParameterKind.positional_only
+        ):
+            parts.append("/")
+            positional_only_closed = True
+
+        if parameter.kind is griffe.ParameterKind.keyword_only and not keyword_only_opened:
+            parts.append("*")
+            keyword_only_opened = True
+
+        match parameter.kind:
+            case griffe.ParameterKind.var_positional:
+                part = f"*{parameter.name}"
+                keyword_only_opened = True
+
+            case griffe.ParameterKind.var_keyword:
+                part = f"**{parameter.name}"
+
+            case _:
+                part = parameter.name
+
+        if parameter.annotation is not None:
+            part += f": {remove_prefix(str(parameter.annotation))}"
+            separator = " = "
+
+        else:
+            separator = "="
+
+        variadic = {griffe.ParameterKind.var_positional, griffe.ParameterKind.var_keyword}
+        if parameter.default is not None and parameter.kind not in variadic:
+            part += f"{separator}{parameter.default}"
+
+        parts.append(part)
+
+    if has_positional_only and not positional_only_closed:
+        parts.append("/")
+
+    return parts
+
+
+def _callable_parameters(
+    parent: griffe.Alias | griffe.Class | griffe.Function,
+) -> list[griffe.Parameter]:
+    """The parameters a caller passes, without the receiver a bound method is called through."""
+
+    parameters = list(parent.parameters)
+    if parameters and parameters[0].name in {"self", "cls"}:
+        return parameters[1:]
+
+    return parameters
+
+
 def _attribute_property(attribute: griffe.Attribute, description: str | None = None) -> Property:
     annotation = (
         remove_prefix(str(attribute.annotation)) if attribute.annotation is not None else None
@@ -116,8 +228,22 @@ def _attribute_property(attribute: griffe.Attribute, description: str | None = N
 
 
 def remove_prefix(text: str) -> str:
-    """Strip dotted module paths from type references (e.g. `pathlib.Path` → `Path`), relying on
-    the python convention that classes are CapitalCase.
+    """Strip the module paths from type references, so `pathlib.Path` reads as `Path`.
+
+    Relies on the convention that class names are CapitalCase. A dotted name ending in a lowercase
+    word is left alone, since it is far more likely to name a value than a type.
+
+    Args:
+        text: A type annotation as written.
+
+    Returns:
+        The annotation with each type named on its own.
+
+    Examples:
+        ```python
+        remove_prefix("dict[str, pathlib.Path]")
+        # 'dict[str, Path]'
+        ```
     """
 
     return _MODULE_PREFIX_RE.sub(r"\1", text.replace("builtins.", ""))
