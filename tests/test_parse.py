@@ -11,6 +11,7 @@ from fumero.error import ModuleNotFound
 from fumero.parse import (
     load_module,
     module_attributes,
+    parse_docstring,
     parse_function_definition,
     public_members,
     remove_prefix,
@@ -20,7 +21,9 @@ from fumero.parse import (
 @pytest.fixture
 def visit() -> Callable[[str], griffe.Module]:
     def visited(source: str) -> griffe.Module:
-        with griffe.temporary_visited_module(dedent(source), module_name="example") as module:
+        with griffe.temporary_visited_module(
+            dedent(source), module_name="example", docstring_parser=griffe.Parser.google
+        ) as module:
             return module
 
     return visited
@@ -126,6 +129,138 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
     assert [attribute.name for attribute in attributes] == ["ROOT", "TIMEOUT"]
     assert attributes[0].annotation == "Path"
     assert attributes[1].value == "30"
+
+
+def test_parse_docstring_takes_parameters_from_the_signature(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit('''
+        def connect(host: str, port: int = 8080, timeout: float = 1.0) -> None:
+            """Open a connection.
+
+            Args:
+                timeout: Seconds to wait.
+                host: Where to connect.
+            """
+    ''')
+
+    docstring = parse_docstring(cast(griffe.Function, module["connect"]))
+
+    assert docstring.description == "Open a connection."
+    assert [parameter.name for parameter in docstring.parameters] == ["host", "port", "timeout"]
+    assert [parameter.description for parameter in docstring.parameters] == [
+        "Where to connect.",
+        None,
+        "Seconds to wait.",
+    ]
+    assert docstring.parameters[1].value == "8080"
+
+
+def test_parse_docstring_describes_the_return_value(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        import pathlib
+
+
+        def resolve() -> pathlib.Path:
+            """Find the root.
+
+            Returns:
+                The directory everything is relative to.
+            """
+    ''')
+
+    docstring = parse_docstring(cast(griffe.Function, module["resolve"]))
+
+    assert docstring.returns is not None
+    assert docstring.returns.annotation == "Path"
+    assert docstring.returns.description == "The directory everything is relative to."
+
+
+def test_parse_docstring_records_what_a_function_raises(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        def connect() -> None:
+            """Open a connection.
+
+            Raises:
+                TimeoutError: The host did not answer.
+            """
+    ''')
+
+    docstring = parse_docstring(cast(griffe.Function, module["connect"]))
+
+    assert [raised.annotation for raised in docstring.raises] == ["TimeoutError"]
+    assert docstring.raises[0].description == "The host did not answer."
+
+
+def test_parse_docstring_splits_examples_into_prose_and_code(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit('''
+        def connect() -> None:
+            """Open a connection.
+
+            Examples:
+                Point it at a host.
+
+                >>> connect()
+            """
+    ''')
+
+    docstring = parse_docstring(cast(griffe.Function, module["connect"]))
+
+    assert [admonition.kind for admonition in docstring.admonitions] == ["markdown", "example"]
+    assert docstring.admonitions[0].content == "Point it at a host."
+    assert docstring.admonitions[1].content == ">>> connect()"
+
+
+def test_parse_docstring_keeps_an_admonition_as_a_callout(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        def connect() -> None:
+            """Open a connection.
+
+            Warning:
+                The socket stays open.
+            """
+    ''')
+
+    docstring = parse_docstring(cast(griffe.Function, module["connect"]))
+
+    assert [admonition.kind for admonition in docstring.admonitions] == ["warning"]
+    assert docstring.admonitions[0].content == "The socket stays open."
+
+
+def test_parse_docstring_describes_declared_attributes(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Client:
+            """A connection.
+
+            Attributes:
+                host: Where it points.
+            """
+
+            host: str = "localhost"
+            port: int = 8080
+            _retries: int = 3
+    ''')
+
+    docstring = parse_docstring(cast(griffe.Class, module["Client"]))
+
+    assert [attribute.name for attribute in docstring.attributes] == ["host", "port"]
+    assert docstring.attributes[0].description == "Where it points."
+    assert docstring.attributes[1].description is None
+
+
+def test_parse_docstring_of_an_undocumented_function_still_reads_the_signature(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit("def connect(host: str) -> None: ...")
+
+    docstring = parse_docstring(cast(griffe.Function, module["connect"]))
+
+    assert docstring.description is None
+    assert [parameter.name for parameter in docstring.parameters] == ["host"]
+    assert docstring.returns is not None
+    assert docstring.returns.annotation == "None"
 
 
 @pytest.mark.parametrize(

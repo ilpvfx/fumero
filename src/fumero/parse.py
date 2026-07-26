@@ -14,11 +14,12 @@ import griffe
 
 from .config import Config
 from .error import ModuleNotFound
-from .model import Property
+from .model import Admonition, ParsedDocstring, Property
 
 __all__ = [
     "load_module",
     "module_attributes",
+    "parse_docstring",
     "parse_function_definition",
     "public_members",
     "remove_prefix",
@@ -110,6 +111,148 @@ def module_attributes(module: griffe.Module, config: Config) -> list[Property]:
     ]
 
     return sorted(attributes, key=lambda attribute: attribute.name)
+
+
+def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> ParsedDocstring:
+    """Split a docstring into the sections a page renders separately.
+
+    The signature is read first, so every parameter and the return type are described whether the
+    docstring mentions them or not. An `Args:` entry then fills in the prose for the parameter it
+    names, which is why the parameter list stays in signature order rather than docstring order.
+
+    Args:
+        parent: The class or function to read.
+
+    Returns:
+        The sections of the docstring. A `parent` with no docstring at all still yields its
+        parameters and return type, since those come from the signature.
+    """
+
+    parameters = [_parameter_property(parameter) for parameter in _callable_parameters(parent)]
+    attributes = [
+        _attribute_property(attribute)
+        for attribute in parent.attributes.values()
+        if not attribute.name.startswith("_")
+    ]
+    returns = _return_property(parent)
+
+    if not parent.docstring:
+        return ParsedDocstring(parameters=parameters, returns=returns)
+
+    description: str | None = None
+    raises: list[Property] = []
+    admonitions: list[Admonition] = []
+
+    for index, section in enumerate(parent.docstring.parsed):
+        match section:
+            case griffe.DocstringSectionText() if index == 0:
+                description = section.value
+
+            case griffe.DocstringSectionParameters():
+                parameters = _described_parameters(parent, section.value)
+
+            case griffe.DocstringSectionAttributes():
+                attributes = _described_attributes(parent, section.value)
+
+            case griffe.DocstringSectionReturns() | griffe.DocstringSectionYields():
+                if returns is not None and section.value:
+                    returns.description = section.value[0].description or None
+
+            case griffe.DocstringSectionRaises():
+                raises = [_raise_property(raised) for raised in section.value]
+
+            case griffe.DocstringSectionAdmonition():
+                admonitions.append(_admonition(section))
+
+            case griffe.DocstringSectionExamples():
+                admonitions.extend(_examples(section))
+
+    return ParsedDocstring(description, parameters, attributes, raises, admonitions, returns)
+
+
+def _described_parameters(
+    parent: griffe.Alias | griffe.Class | griffe.Function,
+    documented: list[griffe.DocstringParameter],
+) -> list[Property]:
+    """The signature's parameters, each carrying the prose its `Args:` entry gave it."""
+
+    descriptions = {entry.name: entry.description for entry in documented}
+
+    return [
+        _parameter_property(parameter, descriptions.get(parameter.name))
+        for parameter in _callable_parameters(parent)
+    ]
+
+
+def _described_attributes(
+    parent: griffe.Alias | griffe.Class | griffe.Function,
+    documented: list[griffe.DocstringAttribute],
+) -> list[Property]:
+    """The attributes as declared, each carrying the prose its `Attributes:` entry gave it."""
+
+    descriptions = {entry.name: entry.description for entry in documented}
+
+    return [
+        _attribute_property(attribute, descriptions.get(attribute.name))
+        for attribute in parent.attributes.values()
+        if not attribute.name.startswith("_")
+    ]
+
+
+def _return_property(parent: griffe.Alias | griffe.Class | griffe.Function) -> Property | None:
+    """The return value read from the signature, before a `Returns:` section describes it."""
+
+    if parent.kind is not griffe.Kind.FUNCTION:
+        return None
+
+    if not isinstance(parent, griffe.Alias | griffe.Function):
+        return None
+
+    annotation = remove_prefix(str(parent.returns)) if parent.returns is not None else None
+
+    return Property(parent.name, annotation, None, None)
+
+
+def _raise_property(documented: griffe.DocstringRaise) -> Property:
+    """One `Raises:` entry, named after the exception it records."""
+
+    annotation = (
+        remove_prefix(str(documented.annotation)) if documented.annotation is not None else None
+    )
+
+    return Property(annotation or "", annotation, documented.description or None, None)
+
+
+def _admonition(section: griffe.DocstringSectionAdmonition) -> Admonition:
+    kind = str(section.value.kind)
+
+    return Admonition(kind, section.title or kind.title(), section.value.contents)
+
+
+def _examples(section: griffe.DocstringSectionExamples) -> list[Admonition]:
+    """An `Examples:` section, split into the prose and the doctests it alternates between.
+
+    Prose arrives as markdown and passes through as written; a doctest arrives as bare source and
+    needs a fence put round it, which the template does once it knows which is which.
+    """
+
+    return [
+        Admonition(
+            "example" if kind is griffe.DocstringSectionKind.examples else "markdown",
+            section.title or "Example",
+            content,
+        )
+        for kind, content in section.value
+    ]
+
+
+def _parameter_property(parameter: griffe.Parameter, description: str | None = None) -> Property:
+    annotation = (
+        remove_prefix(str(parameter.annotation)) if parameter.annotation is not None else None
+    )
+    value = str(parameter.default) if parameter.default is not None else None
+
+    return Property(parameter.name, annotation, description, value)
 
 
 def parse_function_definition(function: griffe.Function, width: int = 84) -> str:
