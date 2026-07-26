@@ -1,0 +1,75 @@
+---
+title: Result
+---
+
+
+
+
+
+What a run produced.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"pages"} type={"list[Path]"} value={"list()"}>
+Every `.mdx` file written, in the order they were written.
+</PdxParameter>
+
+<PdxParameter name={"unresolved"} type={"list[UnresolvedLink]"} value={"list()"} links={{"UnresolvedLink": "/api/fumero/UnresolvedLink"}}>
+The item links that named nothing documented. Each one is a typo or a stale
+rename, and each renders as plain code rather than as a link leading nowhere.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> pages [#pages]
+
+</div>
+
+
+<PdxAttribute name={"pages"} type={"list[Path]"} value={"field(default_factory=list)"}>
+Every `.mdx` file written, in the order they were written.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> unresolved [#unresolved]
+
+</div>
+
+
+<PdxAttribute name={"unresolved"} type={"list[UnresolvedLink]"} value={"field(default_factory=list)"} links={{"UnresolvedLink": "/api/fumero/UnresolvedLink"}}>
+The item links that named nothing documented. Each one is a typo or a stale
+rename, and each renders as plain code rather than as a link leading nowhere.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> ok [#ok]
+
+</div>
+
+
+<PdxAttribute name={"ok"} type={"bool"}>
+Whether every link resolved.
+</PdxAttribute>
+
+
+</PdxAttributes>
+
+

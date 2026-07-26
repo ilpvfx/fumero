@@ -1,0 +1,95 @@
+---
+title: Function
+---
+
+
+
+
+
+A function or a method, which are documented the same way.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"name"} type={"str"}>
+The short name, not the dotted path.
+</PdxParameter>
+
+<PdxParameter name={"docstring"} type={"ParsedDocstring"} links={{"ParsedDocstring": "/api/fumero/model/ParsedDocstring"}}>
+The parsed docstring.
+</PdxParameter>
+
+<PdxParameter name={"definition"} type={"str"}>
+The `def` line as documentation shows it: without the receiver, and wrapped one
+parameter to a line when it is too long to read across.
+</PdxParameter>
+
+<PdxParameter name={"source"} type={"str"} value={"''"}>
+The function's source text, empty when it could not be read.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> name [#name]
+
+</div>
+
+
+<PdxAttribute name={"name"} type={"str"}>
+The short name, not the dotted path.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> docstring [#docstring]
+
+</div>
+
+
+<PdxAttribute name={"docstring"} type={"ParsedDocstring"} links={{"ParsedDocstring": "/api/fumero/model/ParsedDocstring"}}>
+The parsed docstring.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> definition [#definition]
+
+</div>
+
+
+<PdxAttribute name={"definition"} type={"str"}>
+The `def` line as documentation shows it: without the receiver, and wrapped one
+parameter to a line when it is too long to read across.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> source [#source]
+
+</div>
+
+
+<PdxAttribute name={"source"} type={"str"} value={"''"}>
+The function's source text, empty when it could not be read.
+</PdxAttribute>
+
+
+</PdxAttributes>
+
+

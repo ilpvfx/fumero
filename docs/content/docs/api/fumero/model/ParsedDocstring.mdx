@@ -1,0 +1,128 @@
+---
+title: ParsedDocstring
+---
+
+
+
+
+
+A docstring split into the sections a page renders separately.
+
+Every field has an empty default, so an undocumented function still holds one of these rather
+than nothing at all.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"description"} type={"str | None"} value={"None"}>
+The leading prose, before any section.
+</PdxParameter>
+
+<PdxParameter name={"parameters"} type={"list[Property]"} value={"list()"} links={{"Property": "/api/fumero/model/Property"}}>
+Documented parameters, in signature order.
+</PdxParameter>
+
+<PdxParameter name={"attributes"} type={"list[Property]"} value={"list()"} links={{"Property": "/api/fumero/model/Property"}}>
+Documented attributes.
+</PdxParameter>
+
+<PdxParameter name={"raises"} type={"list[Property]"} value={"list()"} links={{"Property": "/api/fumero/model/Property"}}>
+Exceptions the docstring records, each with the type raised and the reason.
+</PdxParameter>
+
+<PdxParameter name={"admonitions"} type={"list[Admonition]"} value={"list()"} links={{"Admonition": "/api/fumero/model/Admonition"}}>
+Examples and callouts, in the order they were written.
+</PdxParameter>
+
+<PdxParameter name={"returns"} type={"Property | None"} value={"None"} links={{"Property": "/api/fumero/model/Property"}}>
+The return value, or `None` for something that returns nothing.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> description [#description]
+
+</div>
+
+
+<PdxAttribute name={"description"} type={"str | None"} value={"None"}>
+The leading prose, before any section.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> parameters [#parameters]
+
+</div>
+
+
+<PdxAttribute name={"parameters"} type={"list[Property]"} value={"field(default_factory=list)"} links={{"Property": "/api/fumero/model/Property"}}>
+Documented parameters, in signature order.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> attributes [#attributes]
+
+</div>
+
+
+<PdxAttribute name={"attributes"} type={"list[Property]"} value={"field(default_factory=list)"} links={{"Property": "/api/fumero/model/Property"}}>
+Documented attributes.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> raises [#raises]
+
+</div>
+
+
+<PdxAttribute name={"raises"} type={"list[Property]"} value={"field(default_factory=list)"} links={{"Property": "/api/fumero/model/Property"}}>
+Exceptions the docstring records, each with the type raised and the reason.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> admonitions [#admonitions]
+
+</div>
+
+
+<PdxAttribute name={"admonitions"} type={"list[Admonition]"} value={"field(default_factory=list)"} links={{"Admonition": "/api/fumero/model/Admonition"}}>
+Examples and callouts, in the order they were written.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> returns [#returns]
+
+</div>
+
+
+<PdxAttribute name={"returns"} type={"Property | None"} value={"None"} links={{"Property": "/api/fumero/model/Property"}}>
+The return value, or `None` for something that returns nothing.
+</PdxAttribute>
+
+
+</PdxAttributes>
+
+

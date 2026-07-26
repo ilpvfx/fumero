@@ -26,5 +26,11 @@ build-backend = "uv_build"
 [project.scripts]
 fumero = "fumero.tools.fumero:main"
 
+[tool.fumero]
+base-url = "/api"
+clean = true
+output = "docs/content/docs/api"
+with-meta = true
+
 [tool.ruff]
 line-length = 100

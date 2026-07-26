@@ -1,0 +1,64 @@
+---
+title: Card
+---
+
+
+
+
+
+A navigation entry for something documented on a page of its own.
+
+Carries the target's docstring as well as its name, because a list of bare names makes a reader
+open every page to find the one they wanted.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"name"} type={"str"}>
+The short name, used as the card's title and in its link.
+</PdxParameter>
+
+<PdxParameter name={"docstring"} type={"str | None"} value={"None"}>
+The target's docstring, summarised to its first paragraph when rendered.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> name [#name]
+
+</div>
+
+
+<PdxAttribute name={"name"} type={"str"}>
+The short name, used as the card's title and in its link.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> docstring [#docstring]
+
+</div>
+
+
+<PdxAttribute name={"docstring"} type={"str | None"} value={"None"}>
+The target's docstring, summarised to its first paragraph when rendered.
+</PdxAttribute>
+
+
+</PdxAttributes>
+
+

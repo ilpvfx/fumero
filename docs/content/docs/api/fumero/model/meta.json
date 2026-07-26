@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "Admonition",
+    "Card",
+    "Class",
+    "Function",
+    "Module",
+    "ParsedDocstring",
+    "Property"
+  ]
+}

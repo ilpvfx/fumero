@@ -1,0 +1,313 @@
+---
+title: fumero
+---
+
+
+
+
+
+Turn a Python module into a Fumadocs API reference.
+
+fumero reads a module with [griffe][griffe], writes the MDX a Fumadocs site renders, and ships the
+React components that render it. Signatures, type annotations and default values are read from the
+source, and the prose is taken from the docstrings.
+
+### One call
+
+```python
+from pathlib import Path
+
+import fumero
+
+result = fumero.generate(
+    "example",
+    fumero.Config(output=Path("content/docs/api"), base_url="/docs/api", clean=True),
+)
+```
+
+Nothing here prints and nothing exits. <PdxRef href="/api/fumero#generate">generate</PdxRef> hands back a <PdxRef href="/api/fumero/Result">Result</PdxRef> naming every page it
+wrote and every reference it could not resolve, which leaves a build script free to decide what
+that is worth:
+
+```python
+if not result.ok:
+    raise SystemExit("the reference has broken links")
+```
+
+<PdxRef href="/api/fumero/error/ModuleNotFound">ModuleNotFound</PdxRef> is the one error to expect. Documenting a module means importing it, so a
+module that will not import is the end of the run rather than a page with gaps in it.
+
+### A layer down
+
+<PdxRef href="/api/fumero#generate">generate</PdxRef> is two steps taken together, and they come apart when several modules are documented
+into one site, or when the tree is already loaded:
+
+```python
+config = fumero.Config(base_url="/docs/api")
+module = fumero.load_module("example", config)
+result = fumero.Renderer(config).render(module, Path("content/docs/api"))
+```
+
+A <PdxRef href="/api/fumero/LinkTable">LinkTable</PdxRef> is collected across the whole tree before anything is written, which is what lets
+a page reference a symbol whose own page is written later.
+
+[griffe]: https://mkdocstrings.github.io/griffe/
+
+
+
+## Modules [#section-modules]
+
+<Cards>
+
+<Card title={"error"} description={"Every failure fumero raises."} href={"./error/"} />
+
+<Card title={"model"} description={"The shape of a documented API, independent of how it is rendered."} href={"./model/"} />
+
+</Cards>
+
+
+
+## Classes [#section-classes]
+
+<Cards>
+
+<Card title={"Config"} description={"What to document, how much of it, and where the result goes."} href={"./Config/"} />
+
+<Card title={"Dialect"} description={"A docstring dialect griffe knows how to parse."} href={"./Dialect/"} />
+
+<Card title={"LinkTable"} description={"Every documented name, mapped to where it is rendered."} href={"./LinkTable/"} />
+
+<Card title={"Renderer"} description={"Walks a module tree and writes its MDX."} href={"./Renderer/"} />
+
+<Card title={"Result"} description={"What a run produced."} href={"./Result/"} />
+
+<Card title={"UnresolvedLink"} description={"An item link that named nothing documented."} href={"./UnresolvedLink/"} />
+
+</Cards>
+
+
+
+
+
+## Functions [#section-functions]
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> component\_source [#component\_source]
+
+</div>
+
+<PdxFunction name={"component_source"} definition={"def component_source() -> str"}>
+
+The component file's source text.
+
+Useful for putting the components somewhere <PdxRef href="/api/fumero#init">init</PdxRef> does not reach, such as into a generated
+bundle, or into a template with the imports rewritten.
+
+
+
+
+
+
+<PdxReturns type={"str"}>
+The `.tsx` source, exactly as it ships.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> encode\_text [#encode\_text]
+
+</div>
+
+<PdxFunction name={"encode_text"} definition={"def encode_text(\n    text: str | None,\n    links: LinkTable,\n    scope: str | None = None,\n    on_unresolved: Callable[[str], None] | None = None,\n) -> str"}>
+
+Escape the characters MDX would read as markup, and resolve the item links.
+
+Code is left exactly as written. MDX already treats `<` and `{` literally inside fenced,
+indented, and inline code, so escaping there would leak backslashes into the rendered code.
+
+Two link forms are recognised, as in rustdoc. The shortcut form shows the path as written; the
+labelled form shows the label instead, which is how a long path stays out of a sentence. A
+label that is not code renders as prose rather than monospace.
+
+A path is fully qualified (`example.Client.close`), partly qualified (`Client.close`), bare
+(`close`), or written against the page being rendered (`self`, `self.close`).
+
+
+```python
+encode_text("see [`Client.close`]", links)
+# 'see <PdxRef href="/api/example/Client#close">Client.close</PdxRef>'
+```
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"text"} type={"str | None"}>
+The docstring text, or `None`.
+</PdxParameter>
+
+<PdxParameter name={"links"} type={"LinkTable"} links={{"LinkTable": "/api/fumero/LinkTable"}}>
+Where names resolve to.
+</PdxParameter>
+
+<PdxParameter name={"scope"} type={"str | None"} value={"None"}>
+The page being rendered, for bare and `self` paths.
+</PdxParameter>
+
+<PdxParameter name={"on_unresolved"} type={"Callable[[str], None] | None"} value={"None"}>
+Called with the path when a shortcut link names nothing documented. A
+labelled link is never reported, since that syntax is also an ordinary markdown link.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"str"}>
+MDX ready to be written into a page.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> generate [#generate]
+
+</div>
+
+<PdxFunction name={"generate"} definition={"def generate(module: str, config: Config | None = None) -> Result"}>
+
+Document a module.
+
+
+```python
+result = generate("example", Config(output=Path("content/docs/api"), clean=True))
+
+for link in result.unresolved:
+    print(link)
+```
+
+
+
+<Callout title={"Raises"} type={"warn"}>
+
+
+- <PdxRef href={"/api/fumero/error/ModuleNotFound"}>ModuleNotFound</PdxRef>: `module` is not importable from here.
+
+</Callout>
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"module"} type={"str"}>
+An importable module path.
+</PdxParameter>
+
+<PdxParameter name={"config"} type={"Config | None"} value={"None"} links={{"Config": "/api/fumero/Config"}}>
+What to render and where. Defaults document everything into the working directory.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"Result"} links={{"Result": "/api/fumero/Result"}}>
+The files written, and any links that did not resolve.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> init [#init]
+
+</div>
+
+<PdxFunction name={"init"} definition={"def init(destination: Path | str) -> Path"}>
+
+Write the components to `destination`, creating parent directories as needed.
+
+Overwrites whatever is already there, so point it at a path your docs app owns.
+
+
+```python
+init("src/components/mdx/pdx.tsx")
+```
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"destination"} type={"Path | str"}>
+Where to write the `.tsx` file.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"Path"}>
+The path written to.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> load\_module [#load\_module]
+
+</div>
+
+<PdxFunction name={"load_module"} definition={"def load_module(name: str, config: Config | None = None) -> Module"}>
+
+Read a module and hand back griffe's view of it.
+
+A package is a module that happens to hold other modules, so either will do: `example` reads
+the whole package, `example.core` reads that subtree on its own.
+
+
+```python
+module = load_module("example")
+```
+
+
+
+<Callout title={"Raises"} type={"warn"}>
+
+
+- <PdxRef href={"/api/fumero/error/ModuleNotFound"}>ModuleNotFound</PdxRef>: `name` is not importable from here.
+
+</Callout>
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"name"} type={"str"}>
+An importable module path.
+</PdxParameter>
+
+<PdxParameter name={"config"} type={"Config | None"} value={"None"} links={{"Config": "/api/fumero/Config"}}>
+Supplies the docstring dialect. Defaults are used when this is `None`.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"Module"} links={{"Module": "/api/fumero/model/Module"}}>
+The module, and everything under it.
+</PdxReturns>
+
+
+</PdxFunction>
+

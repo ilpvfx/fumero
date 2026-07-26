@@ -3,6 +3,8 @@
   "root": false,
   "pages": [
     "---Getting Started---",
-    "index"
+    "index",
+    "---API Reference---",
+    "...api"
   ]
 }

@@ -1,0 +1,308 @@
+---
+title: Config
+---
+
+
+
+
+
+What to document, how much of it, and where the result goes.
+
+Every field has a default, so `Config()` on its own is valid and documents everything into the
+working directory. Use <PdxRef href="/api/fumero/Config#from_pyproject">Config.from_pyproject</PdxRef> to take the defaults from a project file.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"output"} type={"Path"} value={"Path('.')"}>
+Directory the `.mdx` tree is written into.
+</PdxParameter>
+
+<PdxParameter name={"base_url"} type={"str"} value={"''"}>
+URL the output directory is served at, used to build links between pages. Leave
+it empty for links relative to the site root.
+</PdxParameter>
+
+<PdxParameter name={"dialect"} type={"Dialect"} value={"Dialect.AUTO"} links={{"Dialect": "/api/fumero/Dialect"}}>
+The docstring dialect griffe parses with.
+</PdxParameter>
+
+<PdxParameter name={"exclude"} type={"tuple[str, ...]"} value={"()"}>
+Glob patterns matched against each member's dotted path and its short name.
+Excluding a module drops its whole subtree.
+</PdxParameter>
+
+<PdxParameter name={"clean"} type={"bool"} value={"False"}>
+Remove the module's previous output before rendering.
+</PdxParameter>
+
+<PdxParameter name={"with_source"} type={"bool"} value={"False"}>
+Render each function's own source below it, in a block that starts collapsed.
+</PdxParameter>
+
+<PdxParameter name={"with_meta"} type={"bool"} value={"False"}>
+Write a `meta.json` in each output directory naming the pages it holds, which
+is how Fumadocs orders the sidebar. Submodules come before classes, each group under
+a heading of its own when a directory holds both. Without one the order is alphabetical.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> output [#output]
+
+</div>
+
+
+<PdxAttribute name={"output"} type={"Path"} value={"Path('.')"}>
+Directory the `.mdx` tree is written into.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> base\_url [#base\_url]
+
+</div>
+
+
+<PdxAttribute name={"base_url"} type={"str"} value={"''"}>
+URL the output directory is served at, used to build links between pages. Leave
+it empty for links relative to the site root.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> dialect [#dialect]
+
+</div>
+
+
+<PdxAttribute name={"dialect"} type={"Dialect"} value={"Dialect.AUTO"} links={{"Dialect": "/api/fumero/Dialect"}}>
+The docstring dialect griffe parses with.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> exclude [#exclude]
+
+</div>
+
+
+<PdxAttribute name={"exclude"} type={"tuple[str, ...]"} value={"()"}>
+Glob patterns matched against each member's dotted path and its short name.
+Excluding a module drops its whole subtree.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> clean [#clean]
+
+</div>
+
+
+<PdxAttribute name={"clean"} type={"bool"} value={"False"}>
+Remove the module's previous output before rendering.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> with\_source [#with\_source]
+
+</div>
+
+
+<PdxAttribute name={"with_source"} type={"bool"} value={"False"}>
+Render each function's own source below it, in a block that starts collapsed.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> with\_meta [#with\_meta]
+
+</div>
+
+
+<PdxAttribute name={"with_meta"} type={"bool"} value={"False"}>
+Write a `meta.json` in each output directory naming the pages it holds, which
+is how Fumadocs orders the sidebar. Submodules come before classes, each group under
+a heading of its own when a directory holds both. Without one the order is alphabetical.
+</PdxAttribute>
+
+
+</PdxAttributes>
+
+
+
+## Methods [#section-methods]
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> excludes [#excludes]
+
+</div>
+
+<PdxFunction name={"excludes"} definition={"def excludes(obj: Object | Alias) -> bool"}>
+
+Whether `obj` matches one of the <PdxRef href="/api/fumero/Config#exclude">Config.exclude</PdxRef> patterns.
+
+Patterns are matched against the dotted path and against the short name, so
+`example.internal` skips one module, `*.tests` skips every `tests` submodule, and a bare
+`deprecated` skips any member of that name wherever it turns up.
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"obj"} type={"Object | Alias"}>
+The member to test.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"bool"}>
+`True` when the member should be left undocumented.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> from\_pyproject [#from\_pyproject]
+
+</div>
+
+<PdxFunction name={"from_pyproject"} definition={"def from_pyproject(path: Path | str = 'pyproject.toml', **overrides: Any) -> Self"}>
+
+Read the defaults from a `[tool.fumero]` table.
+
+A missing file, or a file with no such table, yields the defaults. Reading configuration is
+not an error when there is none to read. Keys naming no field are ignored, so a config file
+written for a later fumero does not break an earlier one.
+
+Every key is the field it sets, with hyphens allowed in place of underscores.
+
+
+```toml
+[tool.fumero]
+output = "content/docs/api"
+base-url = "/docs/api"
+exclude = ["example.internal", "*.tests"]
+with-meta = true
+```
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"path"} type={"Path | str"} value={"'pyproject.toml'"}>
+The `pyproject.toml` to read.
+</PdxParameter>
+
+<PdxParameter name={"overrides"} type={"Any"} value={"{}"}>
+
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"Self"}>
+The configuration the file describes, with `overrides` applied.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> href [#href]
+
+</div>
+
+<PdxFunction name={"href"} definition={"def href(segments: Sequence[str]) -> str"}>
+
+The URL of the page at `segments`, under <PdxRef href="/api/fumero/Config#base_url">Config.base_url</PdxRef>.
+
+
+```python
+Config(base_url="/docs/api").href(["example", "core"])
+# '/docs/api/example/core'
+```
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"segments"} type={"Sequence[str]"}>
+The page's path, one directory per element.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"str"}>
+An absolute URL path.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> replace [#replace]
+
+</div>
+
+<PdxFunction name={"replace"} definition={"def replace(**changes: Any) -> Self"}>
+
+A copy with `changes` applied, skipping any whose value is `None`.
+
+Skipping `None` is what lets the command line hand over every flag it knows about and have
+the unset ones fall through to whatever the config file said.
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"changes"} type={"Any"} value={"{}"}>
+
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"Self"}>
+A new configuration. The one this was called on is untouched.
+</PdxReturns>
+
+
+</PdxFunction>
+

@@ -18,6 +18,22 @@
   };
 
   git-hooks.hooks = {
+    fumero-generate = {
+      enable = true;
+      name = "fumero generate";
+      entry = "uv run fumero generate fumero";
+      files = "^src/fumero/.*\\.py$";
+      pass_filenames = false;
+    };
+
+    fumero-init = {
+      enable = true;
+      name = "fumero init";
+      entry = "uv run fumero init docs/src/components/mdx/pdx.tsx";
+      files = "^src/fumero/assets/.*\\.tsx$";
+      pass_filenames = false;
+    };
+
     ruff.enable = true;
 
     ty = {

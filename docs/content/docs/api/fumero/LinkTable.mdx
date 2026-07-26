@@ -1,0 +1,149 @@
+---
+title: LinkTable
+---
+
+
+
+
+
+Every documented name, mapped to where it is rendered.
+
+Behaves as a read-only mapping of path to URL, so one can be inspected, merged, or written out
+by hand. Use <PdxRef href="/api/fumero/LinkTable#collect">LinkTable.collect</PdxRef> to build one from a module.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"routes"} type={"Mapping[str, str] | None"} value={"None"}>
+An existing path to URL mapping to start from, such as one collected from another
+package that this one should link into.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+
+
+## Methods [#section-methods]
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> collect [#collect]
+
+</div>
+
+<PdxFunction name={"collect"} definition={"def collect(module: Module, config: Config) -> Self"}>
+
+Walk `module` and record where each documented name will be rendered.
+
+Mirrors the layout the renderer produces, so a collected URL always names a page that is
+actually written.
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"module"} type={"Module"} links={{"Module": "/api/fumero/model/Module"}}>
+The module to walk, as <PdxRef href="/api/fumero#load_module">load_module</PdxRef> returns it.
+</PdxParameter>
+
+<PdxParameter name={"config"} type={"Config"} links={{"Config": "/api/fumero/Config"}}>
+Decides what is rendered, and supplies the base URL.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"Self"}>
+A table covering the whole tree.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> resolve [#resolve]
+
+</div>
+
+<PdxFunction name={"resolve"} definition={"def resolve(path: str, scope: str | None = None) -> str | None"}>
+
+The URL for `path`, or `None` when nothing documented goes by that name.
+
+Resolution is scope first: a bare name is tried against `scope` before the package as a
+whole, so `close` written on the `Client` page means `Client.close` rather than some
+unrelated module function of the same name.
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"path"} type={"str"}>
+A name to look up. Fully qualified (`example.Client.close`), partly qualified
+(`Client.close`), bare (`close`), or written against the page being rendered
+(`self`, `self.close`).
+</PdxParameter>
+
+<PdxParameter name={"scope"} type={"str | None"} value={"None"}>
+The name of the page being rendered, when there is one.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"str | None"}>
+The URL, or `None` when the path names nothing documented.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">method</span> types\_in [#types\_in]
+
+</div>
+
+<PdxFunction name={"types_in"} definition={"def types_in(\n    annotation: str | None,\n    scope: str | None = None,\n) -> dict[str, str] | None"}>
+
+The name to URL pairs for the documented types named in a type annotation.
+
+This is what lets a rendered signature turn its types into links.
+
+
+
+
+
+<PdxParameters>
+
+<PdxParameter name={"annotation"} type={"str | None"}>
+A type as written, such as `list[Client] | None`.
+</PdxParameter>
+
+<PdxParameter name={"scope"} type={"str | None"} value={"None"}>
+The page being rendered. It is never linked, so a class's own signature and
+attributes do not link back to the page you are already reading.
+</PdxParameter>
+
+</PdxParameters>
+
+
+<PdxReturns type={"dict[str, str] | None"}>
+The pairs that were found, or `None` when there are none. `None` rather than an empty
+</PdxReturns>
+
+
+</PdxFunction>
+

@@ -1,0 +1,96 @@
+---
+title: Property
+---
+
+
+
+
+
+A named, typed thing: a parameter, an attribute, or a return value.
+
+All three read the same way on a page, so they share one shape rather than three that differ
+only in which fields happen to be filled in.
+
+
+
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+
+<PdxParameter name={"name"} type={"str"}>
+The name as written in the source.
+</PdxParameter>
+
+<PdxParameter name={"annotation"} type={"str | None"}>
+The type annotation, or `None` when the item carries none.
+</PdxParameter>
+
+<PdxParameter name={"description"} type={"str | None"}>
+Prose from the docstring, or `None` when the item is undocumented.
+</PdxParameter>
+
+<PdxParameter name={"value"} type={"str | None"}>
+The default or assigned value as source text, or `None`.
+</PdxParameter>
+
+</PdxConstructor>
+
+
+
+
+
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> name [#name]
+
+</div>
+
+
+<PdxAttribute name={"name"} type={"str"}>
+The name as written in the source.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> annotation [#annotation]
+
+</div>
+
+
+<PdxAttribute name={"annotation"} type={"str | None"}>
+The type annotation, or `None` when the item carries none.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> description [#description]
+
+</div>
+
+
+<PdxAttribute name={"description"} type={"str | None"}>
+Prose from the docstring, or `None` when the item is undocumented.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> value [#value]
+
+</div>
+
+
+<PdxAttribute name={"value"} type={"str | None"}>
+The default or assigned value as source text, or `None`.
+</PdxAttribute>
+
+
+</PdxAttributes>
+
+

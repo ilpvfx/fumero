@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "---Modules---",
+    "error",
+    "model",
+    "---Classes---",
+    "Config",
+    "Dialect",
+    "LinkTable",
+    "Renderer",
+    "Result",
+    "UnresolvedLink"
+  ]
+}

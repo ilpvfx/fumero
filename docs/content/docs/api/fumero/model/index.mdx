@@ -1,0 +1,43 @@
+---
+title: model
+---
+
+
+
+
+
+The shape of a documented API, independent of how it is rendered.
+
+These are plain dataclasses holding plain strings. No griffe types reach them, so a template can
+read a documented module without knowing how that module was introspected, and a caller who wants
+only the structure of a package can take it without rendering anything.
+
+Start at <PdxRef href="/api/fumero/model/Module">Module</PdxRef>, which is what one page of the reference is built from.
+
+
+
+
+
+## Classes [#section-classes]
+
+<Cards>
+
+<Card title={"Admonition"} description={"A block lifted out of a docstring to be rendered apart from the prose around it."} href={"./Admonition/"} />
+
+<Card title={"Card"} description={"A navigation entry for something documented on a page of its own."} href={"./Card/"} />
+
+<Card title={"Class"} description={"A class and everything documented on its page."} href={"./Class/"} />
+
+<Card title={"Function"} description={"A function or a method, which are documented the same way."} href={"./Function/"} />
+
+<Card title={"Module"} description={"A module and the members documented on its page."} href={"./Module/"} />
+
+<Card title={"ParsedDocstring"} description={"A docstring split into the sections a page renders separately."} href={"./ParsedDocstring/"} />
+
+<Card title={"Property"} description={"A named, typed thing: a parameter, an attribute, or a return value."} href={"./Property/"} />
+
+</Cards>
+
+
+
+
