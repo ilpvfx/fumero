@@ -1,0 +1,50 @@
+---
+title: {{ class.name }}
+---
+
+{# Section headings get an explicit id so they cannot collide with a member's anchor. A page
+   documenting a field named `attributes` would otherwise emit `#attributes` twice: once for
+   this heading and once for the field. A python identifier cannot contain a hyphen, so a
+   `section-` prefix is guaranteed to stay out of the members' way. #}
+
+{% import "macros.mdx.j2" as macros %}
+
+{{ class.docstring.description | encode }}
+
+{# What you pass to build one, without the `def __init__` line: on a class page the constructor is
+   not a member you look up, it is how the class itself is made, and its name is noise. #}
+{% if class.constructor and class.constructor.docstring.parameters %}
+## Constructor Parameters [#section-constructor-parameters]
+
+<PdxConstructor>
+{{ macros.parameter_rows(class.constructor.docstring.parameters) }}
+</PdxConstructor>
+{% endif %}
+
+{% if class.classes %}
+## Classes [#section-classes]
+
+<Cards>
+{% for nested in class.classes %}
+<Card {{ jsx_props(title=nested.name, href="./" ~ nested.name ~ "/") }} />
+{% endfor %}
+</Cards>
+{% endif %}
+
+{% if class.attributes %}
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+{% for attribute in class.attributes %}
+{{ macros.render_attribute(attribute) }}
+{% endfor %}
+</PdxAttributes>
+{% endif %}
+
+{% if class.functions %}
+## Methods [#section-methods]
+
+{% for function in class.functions %}
+{{ macros.render_function(function, with_source, "method") }}
+{% endfor %}
+{% endif %}

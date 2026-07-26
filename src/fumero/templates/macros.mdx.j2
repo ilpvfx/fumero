@@ -1,0 +1,119 @@
+{# Plain markup rather than a component: fumadocs hoists a heading's content to module scope to
+   build the `toc` export, and the MDX component map is not in scope there, so a component inside
+   a heading is a ReferenceError.
+
+   The kind, for the sidebar. A plain word: the page states a member's kind in its card, and this
+   is the only place the kinds interleave, so it needs to be readable, not decorated. #}
+{% macro badge(kind) -%}
+<span className="not-prose font-mono text-[11px] text-fd-muted-foreground">{{ kind }}</span>
+{%- endmacro %}
+
+{# A visually-hidden heading whose only job is to add a table-of-contents entry (with its badge)
+   for the card that follows. The card itself renders the visible content.
+
+   The trailing `[#name]` is Fumadocs' custom-heading-id syntax: it is stripped from the rendered
+   text and used as the id, which gives every member a stable anchor named after it rather than a
+   slug derived from the badge text. That is what makes `Class.member` cross-references resolve.
+
+   The id is escaped like the name is. Fumadocs only strips the marker when the heading's last node
+   is plain text, and `[#__init__]` is not: the doubled underscores parse as emphasis first, which
+   leaves the marker visible in the sidebar and the anchor auto-slugged instead. Escaping keeps it
+   one text node, and the backslashes are consumed by the parser, so the id is still `__init__`.
+
+   Hidden with opacity, and deliberately NOT with `sr-only` or any other clamp-and-clip. Fumadocs
+   tracks the active heading with an IntersectionObserver at `threshold: 0.9`, and the observer
+   clips a target's rect by its ancestors' overflow. A heading inside a 1px `overflow-hidden`
+   wrapper therefore tops out around 3% visible, never crosses 0.9, and never fires a callback, so
+   the table of contents freezes wherever it was when the page loaded.
+
+   Absolute positioning keeps it out of the layout (no height, no collapsing margins) while leaving
+   the heading its real size, so it reaches full ratio like any ordinary heading would. #}
+{% macro toc_heading(kind, name) -%}
+<div className="absolute opacity-0 pointer-events-none">
+
+### {{ badge(kind) }} {{ name | ident }} [#{{ name | ident }}]
+
+</div>
+{%- endmacro %}
+
+{% macro render_function(function, with_source=False, kind="func") -%}
+{{ toc_heading(kind, function.name) }}
+
+<PdxFunction {{ jsx_props(name=function.name, definition=function.definition) }}>
+
+{{ function.docstring.description | encode }}
+
+{% for admonition in function.docstring.admonitions -%}
+{% if admonition.kind == "example" %}
+{% set example_fence = admonition.content | fence -%}
+{{ example_fence }}python
+{{ admonition.content }}
+{{ example_fence }}
+{% elif admonition.kind == "markdown" %}
+{{ admonition.content | encode }}
+{% else %}
+<Callout {{ jsx_props(title=admonition.title, type=(admonition.kind | callout_type)) }}>
+{{ admonition.content | encode }}
+</Callout>
+{% endif %}
+{% endfor %}
+{% if function.docstring.raises %}
+<Callout {{ jsx_props(title="Raises", type="warn") }}>
+{# The one type reference the generator writes itself, so it links it itself. Author prose needs
+   the explicit `[`Name`]` syntax; this is not prose, and an exception with a page of its own
+   should reach it. #}
+{% for exception in function.docstring.raises %}
+{% set href = link_for(exception.annotation) -%}
+- {% if href %}<PdxRef {{ jsx_props(href=href) }}>{{ exception.annotation }}</PdxRef>{% else %}`{{ exception.annotation }}`{% endif %}{% if exception.description %}: {{ exception.description | encode }}{% endif %}
+{% endfor %}
+</Callout>
+{% endif %}
+{% if with_source and function.source %}
+{% set source_fence = function.source | fence -%}
+<PdxSource>
+
+{{ source_fence }}python
+{{ function.source }}
+{{ source_fence }}
+
+</PdxSource>
+{% endif %}
+{% if function.docstring.parameters %}
+{{ render_parameters(function.docstring.parameters) }}
+{% endif %}
+{% if function.docstring.returns %}
+<PdxReturns {{ jsx_props(type=function.docstring.returns.annotation, links=links_for(function.docstring.returns.annotation)) }}>
+{{ function.docstring.returns.description | encode }}
+</PdxReturns>
+{% endif %}
+
+</PdxFunction>
+{%- endmacro %}
+
+{# The rows alone. A member card captions them `parameters`; a class page heads them with a
+   section of its own, so the wrapper is the caller's to choose. #}
+{% macro parameter_rows(parameters) -%}
+{% for parameter in parameters %}
+<PdxParameter {{ jsx_props(name=parameter.name, type=parameter.annotation, value=parameter.value, links=links_for(parameter.annotation)) }}>
+{{ parameter.description | encode }}
+</PdxParameter>
+{% endfor %}
+{%- endmacro %}
+
+{% macro render_parameters(parameters) -%}
+<PdxParameters>
+{{ parameter_rows(parameters) }}
+</PdxParameters>
+{%- endmacro %}
+
+{% macro render_attribute(attribute) -%}
+{{ toc_heading("attr", attribute.name) }}
+
+{% if attribute.description %}
+<PdxAttribute {{ jsx_props(name=attribute.name, type=attribute.annotation, value=attribute.value, links=links_for(attribute.annotation)) }}>
+{{ attribute.description | encode }}
+</PdxAttribute>
+{% else %}
+<PdxAttribute {{ jsx_props(name=attribute.name, type=attribute.annotation, value=attribute.value, links=links_for(attribute.annotation)) }} />
+{% endif %}
+{%- endmacro %}

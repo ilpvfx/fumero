@@ -1,0 +1,54 @@
+---
+title: {{ module.name }}
+---
+
+{# Section headings get an explicit id so they cannot collide with a member's anchor. A page
+   documenting a field named `attributes` would otherwise emit `#attributes` twice: once for
+   this heading and once for the field. A python identifier cannot contain a hyphen, so a
+   `section-` prefix is guaranteed to stay out of the members' way. #}
+
+{% import "macros.mdx.j2" as macros %}
+
+{{ module.docstring | encode }}
+
+{# Navigation first, and both kinds visible at once. These were tabs, which meant landing on a
+   module showed its classes and hid its submodules behind a click, the opposite of what an
+   index page is for. Each card carries the first paragraph of what it documents, so the list
+   answers "which one do I want" without opening anything. #}
+{% if module.modules %}
+## Modules [#section-modules]
+
+<Cards>
+{% for card in module.modules %}
+<Card {{ jsx_props(title=card.name, description=(card.docstring | summarize), href="./" ~ card.name ~ "/") }} />
+{% endfor %}
+</Cards>
+{% endif %}
+
+{% if module.classes %}
+## Classes [#section-classes]
+
+<Cards>
+{% for class in module.classes %}
+<Card {{ jsx_props(title=class.name, description=(class.docstring.description | summarize), href="./" ~ class.name ~ "/") }} />
+{% endfor %}
+</Cards>
+{% endif %}
+
+{% if module.attributes %}
+## Attributes [#section-attributes]
+
+<PdxAttributes>
+{% for attribute in module.attributes %}
+{{ macros.render_attribute(attribute) }}
+{% endfor %}
+</PdxAttributes>
+{% endif %}
+
+{% if module.functions %}
+## Functions [#section-functions]
+
+{% for function in module.functions %}
+{{ macros.render_function(function, with_source) }}
+{% endfor %}
+{% endif %}
