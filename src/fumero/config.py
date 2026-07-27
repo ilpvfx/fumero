@@ -48,8 +48,8 @@ class Config:
         clean: Remove the module's previous output before rendering.
         with_source: Render each function's own source below it, in a block that starts collapsed.
         with_meta: Write a `meta.json` in each output directory naming the pages it holds, which
-            is how Fumadocs orders the sidebar. Submodules come before classes, each group under
-            a heading of its own when a directory holds both. Without one the order is alphabetical.
+            is how Fumadocs orders the sidebar. Submodules are listed before the classes beside
+            them. Without one the order is alphabetical, which mixes the two together.
     """
 
     output: Path = Path(".")

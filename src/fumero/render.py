@@ -269,26 +269,16 @@ class Renderer:
     ) -> None:
         """Write the `meta.json` that fixes the order of the pages in one directory.
 
-        Submodules and classes are separated by a labelled divider, because a flat list gives no
-        hint which entries open a subtree and which document a single symbol. One group on its own
-        needs no label, having nothing to be told apart from.
+        Submodules come before classes, since a submodule opens a subtree and a class documents a
+        single symbol. Their icons say which is which, so neither group needs a heading over it.
         """
 
         if not self.config.with_meta:
             return
 
-        groups = [
-            (label, names) for label, names in (("Modules", modules), ("Classes", classes)) if names
-        ]
-        if not groups:
+        pages = [*modules, *classes]
+        if not pages:
             return
-
-        pages: list[str] = []
-        for label, names in groups:
-            if len(groups) > 1:
-                pages.append(f"---{label}---")
-
-            pages.extend(names)
 
         # fumadocs includes the index automatically, so it is never listed here
         _ = (directory / "meta.json").write_text(json.dumps({"pages": pages}, indent=2) + "\n")

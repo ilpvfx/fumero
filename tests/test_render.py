@@ -131,17 +131,19 @@ def test_render_heads_the_constructor_with_the_call_that_builds_one(
 ):
     output, _ = render()
 
-    assert '<PdxConstructor definition={"Client(host: str)"}>' in (
-        output / "example" / "Client" / "index.mdx"
-    ).read_text()
+    assert (
+        '<PdxConstructor definition={"Client(host: str)"}>'
+        in (output / "example" / "Client" / "index.mdx").read_text()
+    )
 
 
 def test_render_links_the_types_in_a_signature(render: Callable[..., tuple[Path, Result]]):
     output, _ = render(base_url="/docs/api")
 
-    assert 'links={{"Timeout": "/docs/api/example#Timeout"}}' in (
-        output / "example" / "core.mdx"
-    ).read_text()
+    assert (
+        'links={{"Timeout": "/docs/api/example#Timeout"}}'
+        in (output / "example" / "core.mdx").read_text()
+    )
 
 
 def test_render_links_a_documented_exception_it_raises(
@@ -149,9 +151,10 @@ def test_render_links_a_documented_exception_it_raises(
 ):
     output, _ = render(base_url="/docs/api")
 
-    assert '<PdxRef href={"/docs/api/example/Failure"}>Failure</PdxRef>' in (
-        output / "example" / "core.mdx"
-    ).read_text()
+    assert (
+        '<PdxRef href={"/docs/api/example/Failure"}>Failure</PdxRef>'
+        in (output / "example" / "core.mdx").read_text()
+    )
 
 
 @pytest.mark.parametrize(
@@ -184,17 +187,17 @@ def test_render_writes_meta_only_when_asked(
     assert (output / "example" / "meta.json").exists() is expected
 
 
-def test_render_groups_the_page_order_in_meta(render: Callable[..., tuple[Path, Result]]):
+def test_render_lists_submodules_before_classes_in_meta(
+    render: Callable[..., tuple[Path, Result]],
+):
     output, _ = render(with_meta=True)
 
     assert json.loads((output / "example" / "meta.json").read_text()) == {
-        "pages": ["---Modules---", "core", "---Classes---", "Client", "Failure"]
+        "pages": ["core", "Client", "Failure"]
     }
 
 
-def test_render_labels_meta_groups_only_when_there_are_two(
-    render: Callable[..., tuple[Path, Result]],
-):
+def test_render_writes_meta_for_a_nested_class(render: Callable[..., tuple[Path, Result]]):
     output, _ = render(with_meta=True)
 
     assert json.loads((output / "example" / "Client" / "meta.json").read_text()) == {

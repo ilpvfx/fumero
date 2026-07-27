@@ -1,9 +1,7 @@
 {
   "pages": [
-    "---Modules---",
     "error",
     "model",
-    "---Classes---",
     "Config",
     "Dialect",
     "LinkTable",
