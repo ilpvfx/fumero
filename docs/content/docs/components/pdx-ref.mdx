@@ -1,0 +1,64 @@
+---
+title: PdxRef
+description: A cross-reference to a documented item
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+What to document, how much of it, and where the result goes. See
+<PdxRef href="/api/fumero/Config">Config</PdxRef> for every option, or
+<PdxRef href="/api/fumero/Config#replace" title="Config.replace">replace</PdxRef> to derive a
+variant of one you already hold.
+
+</Tab>
+
+<Tab value="Code">
+
+```mdx
+What to document, how much of it, and where the result goes. See
+<PdxRef href={"/api/fumero/Config"}>Config</PdxRef> for every option, or
+<PdxRef href={"/api/fumero/Config#replace"} title={"Config.replace"}>replace</PdxRef> to derive a
+variant of one you already hold.
+```
+
+</Tab>
+
+</Tabs>
+
+Written wherever a docstring names a documented item in backticks, and wherever a type in a
+signature resolves to a page.
+
+It is not an inline `code` element. Fumadocs boxes those, and a boxed chip inside a link reads as
+a button dropped into a sentence. Monospace already says the text is an identifier, so the link
+only has to add the underline. The underline is dotted rather than solid because these can be
+dense inside a type.
+
+`title` carries the full path when the visible label was shortened, so a reader can still see what
+`replace` refers to.
+
+## API Reference
+
+`PdxRef`
+
+A link to the page or anchor documenting one item, written into prose wherever a docstring names
+one and into a signature wherever a type resolves.
+
+<TypeTable
+  type={{
+    href: {
+      type: 'string',
+      required: true,
+      description: 'The page or anchor the reference points at.',
+    },
+    title: {
+      type: 'string',
+      description: 'The full path, shown on hover when the label is shorter than it.',
+    },
+    children: {
+      type: 'ReactNode',
+      description: 'The text to display.',
+    },
+  }}
+/>

@@ -1,0 +1,69 @@
+---
+title: PdxConstructor
+description: What to pass to build an instance
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+<PdxConstructor definition={"UnresolvedLink(path: str, page: Path)"}>
+
+<PdxParameter name={"path"} type={"str"}>
+The path exactly as the docstring wrote it.
+</PdxParameter>
+
+<PdxParameter name={"page"} type={"Path"}>
+The file being rendered when the link was found.
+</PdxParameter>
+
+</PdxConstructor>
+
+</Tab>
+
+<Tab value="Code">
+
+```tsx
+<PdxConstructor definition={"UnresolvedLink(path: str, page: Path)"}>
+  <PdxParameter name={"path"} type={"str"}>
+    The path exactly as the docstring wrote it.
+  </PdxParameter>
+
+  <PdxParameter name={"page"} type={"Path"}>
+    The file being rendered when the link was found.
+  </PdxParameter>
+</PdxConstructor>
+```
+
+</Tab>
+
+</Tabs>
+
+Used on a class page under the `Constructor` heading. The constructor is not a member to look up,
+it is how the class is made, so its parameters are headed by a section of their own rather than
+shown as a `def __init__` card among the methods.
+
+The signature band is the call rather than the `__init__` behind it. `UnresolvedLink(path, page)`
+is the line a reader would write; `def __init__` names the method that implements it, which is a
+different question, and it would carry a return type of `None` where the useful answer is the
+class the page is about.
+
+## API Reference
+
+`PdxConstructor`
+
+The parameter rows on a class page, headed by the call that builds an instance rather than by a
+`def __init__` signature.
+
+<TypeTable
+  type={{
+    definition: {
+      type: 'string',
+      description: 'The call that builds one, already wrapped by fumero when too long.',
+    },
+    children: {
+      type: 'ReactNode',
+      description: 'The parameter rows.',
+    },
+  }}
+/>

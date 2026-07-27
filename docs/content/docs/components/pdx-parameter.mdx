@@ -1,0 +1,114 @@
+---
+title: PdxParameter
+description: A parameter row, and the captioned group it sits in
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+<div className="rounded-lg border border-fd-border bg-fd-card px-4 py-5">
+  <PdxParameters>
+    <PdxParameter name={"path"} type={"Path | str"} value={"'pyproject.toml'"}>
+      The `pyproject.toml` to read.
+    </PdxParameter>
+
+    <PdxParameter
+      name={"config"}
+      type={"Config | None"}
+      value={"None"}
+      links={{ Config: "/api/fumero/Config" }}
+    >
+      Supplies the docstring dialect. Defaults are used when this is `None`.
+    </PdxParameter>
+
+  </PdxParameters>
+</div>
+
+</Tab>
+
+<Tab value="Code">
+
+```tsx
+<PdxParameters>
+  <PdxParameter name={"path"} type={"Path | str"} value={"'pyproject.toml'"}>
+    The `pyproject.toml` to read.
+  </PdxParameter>
+
+  <PdxParameter
+    name={"config"}
+    type={"Config | None"}
+    value={"None"}
+    links={{ Config: "/api/fumero/Config" }}
+  >
+    Supplies the docstring dialect. Defaults are used when this is `None`.
+  </PdxParameter>
+</PdxParameters>
+```
+
+</Tab>
+
+</Tabs>
+
+A name on the left, its type and default on the right, prose underneath. Attributes and return
+values are the same shape, because they are the same kind of thing: something named, something
+typed, something said about it.
+
+The `=` before a default is its own dim glyph rather than part of the highlighted text. Passing
+`= None` through the syntax highlighter colours the equals sign as an operator, where it competes
+with the value it introduces.
+
+`links` is how a type becomes a link. Fumero passes the documented names found in the annotation,
+and the component splices links into the highlighted tokens so the surrounding colour survives.
+Names absent from the map are left as plain type text.
+
+Long types scroll rather than truncate. An ellipsis silently eats the tail of a type, while
+scrolling keeps every character reachable and stays on one line.
+
+## API Reference
+
+`PdxParameter`
+
+One parameter: a name, a type, a default, and a description. Rendered as a row inside a
+`PdxParameters` group.
+
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      required: true,
+      description: 'The parameter name.',
+    },
+    type: {
+      type: 'string',
+      description: 'The annotation as written.',
+    },
+    value: {
+      type: 'string',
+      description: 'The default, as source text.',
+    },
+    links: {
+      type: 'Record<string, string>',
+      description: 'Type names in the annotation, mapped to the page documenting each.',
+    },
+    children: {
+      type: 'ReactNode',
+      description: 'The description. Omit it for an undocumented parameter.',
+    },
+  }}
+/>
+
+`PdxParameters`
+
+The group the rows sit in, supplying the `parameters` caption and dividing them on a hairline. A
+class page heads the identical rows with a section of its own instead, which is why the wrapper is
+the caller's to choose.
+
+<TypeTable
+  type={{
+    children: {
+      type: 'ReactNode',
+      description: 'The parameter rows.',
+    },
+  }}
+/>

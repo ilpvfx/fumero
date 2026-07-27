@@ -1,0 +1,62 @@
+---
+title: PdxReturns
+description: The value a function returns
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+<div className="rounded-lg border border-fd-border bg-fd-card px-4 py-5">
+  <PdxReturns type={"Result"} links={{ Result: "/api/fumero/Result" }}>
+    The files written, and any links that did not resolve.
+  </PdxReturns>
+</div>
+
+</Tab>
+
+<Tab value="Code">
+
+```tsx
+<PdxReturns type={"Result"} links={{ Result: "/api/fumero/Result" }}>
+  The files written, and any links that did not resolve.
+</PdxReturns>
+```
+
+</Tab>
+
+</Tabs>
+
+The `Returns:` section of a docstring, rendered inside a
+[`PdxFunction`](/components/pdx-function) card.
+
+A return value has no name to fill the left column, so its type sits on the caption's own line
+rather than in a row below it. Given a row, the type ended up stranded a line beneath the word
+introducing it, with empty space between the two.
+
+It keeps the right-hand column every other type on the card sits in, so the types down a card
+still line up.
+
+## API Reference
+
+`PdxReturns`
+
+The value a function hands back, captioned inside its card. The type sits on the caption's line,
+since a return has no name to fill the column a parameter's would.
+
+<TypeTable
+  type={{
+    type: {
+      type: 'string',
+      description: 'The return annotation as written.',
+    },
+    links: {
+      type: 'Record<string, string>',
+      description: 'Type names in the annotation, mapped to the page documenting each.',
+    },
+    children: {
+      type: 'ReactNode',
+      description: 'The description of what is returned.',
+    },
+  }}
+/>

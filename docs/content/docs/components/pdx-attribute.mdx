@@ -1,0 +1,110 @@
+---
+title: PdxAttribute
+description: An attribute row, and the list it sits in
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+<PdxAttributes>
+  <PdxAttribute name={"output"} type={"Path"} value={"Path('.')"}>
+    Directory the `.mdx` tree is written into.
+  </PdxAttribute>
+
+  <PdxAttribute
+    name={"dialect"}
+    type={"Dialect"}
+    value={"Dialect.AUTO"}
+    links={{ Dialect: "/api/fumero/Dialect" }}
+  >
+    The docstring dialect griffe parses with.
+  </PdxAttribute>
+
+  <PdxAttribute name={"exclude"} type={"tuple[str, ...]"} value={"()"} />
+</PdxAttributes>
+
+</Tab>
+
+<Tab value="Code">
+
+```tsx
+<PdxAttributes>
+  <PdxAttribute name={"output"} type={"Path"} value={"Path('.')"}>
+    Directory the `.mdx` tree is written into.
+  </PdxAttribute>
+
+  <PdxAttribute
+    name={"dialect"}
+    type={"Dialect"}
+    value={"Dialect.AUTO"}
+    links={{ Dialect: "/api/fumero/Dialect" }}
+  >
+    The docstring dialect griffe parses with.
+  </PdxAttribute>
+
+  <PdxAttribute name={"exclude"} type={"tuple[str, ...]"} value={"()"} />
+</PdxAttributes>
+```
+
+</Tab>
+
+</Tabs>
+
+A name on the left, its type and assigned value on the right, prose underneath. The same shape as
+a parameter row, because an attribute is the same kind of thing: something named, something typed,
+something said about it.
+
+An undocumented attribute is written self-closing, as the third row above is. It still carries its
+name, type and value, which is everything the source knows about it.
+
+`value` is the assigned value as source text, so a default of `Path('.')` reads the way it was
+written rather than as a repr. `links` maps the documented type names in the annotation to their
+pages, and the component splices those links into the highlighted type.
+
+## API Reference
+
+`PdxAttribute`
+
+One attribute: a name, a type, an assigned value, and a description. Rendered as a row inside a
+`PdxAttributes` list.
+
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      required: true,
+      description: 'The attribute name.',
+    },
+    type: {
+      type: 'string',
+      description: 'The annotation as written.',
+    },
+    value: {
+      type: 'string',
+      description: 'The assigned value, as source text.',
+    },
+    links: {
+      type: 'Record<string, string>',
+      description: 'Type names in the annotation, mapped to the page documenting each.',
+    },
+    children: {
+      type: 'ReactNode',
+      description: 'The description. Omit it for an undocumented attribute.',
+    },
+  }}
+/>
+
+`PdxAttributes`
+
+The list the rows sit in. Attributes render as one list rather than a card each, because a card
+apiece turns a handful of one-liners into a column of boxes.
+
+<TypeTable
+  type={{
+    children: {
+      type: 'ReactNode',
+      description: 'The attribute rows.',
+    },
+  }}
+/>

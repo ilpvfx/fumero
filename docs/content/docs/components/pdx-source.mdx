@@ -1,0 +1,64 @@
+---
+title: PdxSource
+description: A function's own source, in a block that starts collapsed
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+<PdxSource>
+
+```python
+def callout_type(kind: str) -> CalloutType:
+    """The callout an admonition of `kind` becomes."""
+
+    return _CALLOUT_TYPES.get(kind.lower(), CalloutType.INFO)
+```
+
+</PdxSource>
+
+</Tab>
+
+<Tab value="Code">
+
+````mdx
+<PdxSource>
+
+```python
+def callout_type(kind: str) -> CalloutType:
+    """The callout an admonition of `kind` becomes."""
+
+    return _CALLOUT_TYPES.get(kind.lower(), CalloutType.INFO)
+```
+
+</PdxSource>
+````
+
+</Tab>
+
+</Tabs>
+
+Written under each function when `with-source` is set, and omitted entirely otherwise. It starts
+collapsed, since the source is there to be consulted rather than read through.
+
+The block inside is an ordinary fenced code block, highlighted by the host app's own MDX pipeline
+rather than by the component. Fumero sizes the fence to the content: the run of backticks it opens
+with is always longer than the longest run inside, so a function that contains a fenced block of
+its own does not close the block early and leave the rest of the page as prose.
+
+## API Reference
+
+`PdxSource`
+
+A function's own source, in a block that starts collapsed. Written only when `with-source` is set.
+
+<TypeTable
+  type={{
+    children: {
+      type: 'ReactNode',
+      required: true,
+      description: 'The fenced code block holding the source.',
+    },
+  }}
+/>

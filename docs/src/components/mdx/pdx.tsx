@@ -257,8 +257,12 @@ function Group({
   return (
     /* `-mx-4 px-4` bleeds the rule to the card's edges. Inside the padding it reads as a line
        drawn in the text; across the card it reads as the card being divided, which is what a
-       section boundary is. */
-    <section className="-mx-4 mt-5 border-t border-fd-border px-4 pt-3">
+       section boundary is.
+
+       A rule divides this group from whatever precedes it, so the first group in a card has
+       nothing to divide from and drops it. Without that, an undocumented function, whose empty
+       description collapses, opens on a line ruled across nothing. */
+    <section className="-mx-4 mt-5 border-t border-fd-border px-4 pt-3 first:mt-0 first:border-t-0 first:pt-0">
       <div className="not-prose mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h4 className={CAPTION}>{label}</h4>
         {meta}

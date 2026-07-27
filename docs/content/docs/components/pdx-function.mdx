@@ -1,0 +1,86 @@
+---
+title: PdxFunction
+description: A documented function or method
+---
+
+<Tabs items={['Preview', 'Code']}>
+
+<Tab value="Preview">
+
+{/* a tab panel strips the border from a figure that is its only child, a rule meant for
+    code blocks. this div is what leaves PdxFunction's own card intact. */}
+<div className="[&>*]:my-0">
+  <PdxFunction name={"replace"} definition={"def replace(**changes: Any) -> Self"}>
+    A copy with `changes` applied, skipping any whose value is `None`.
+    <PdxParameters>
+      <PdxParameter name={"changes"} type={"Any"}>
+        Field values to override.
+      </PdxParameter>
+    </PdxParameters>
+    <PdxReturns type={"Self"}>
+      A new configuration. The one this was called on is untouched.
+    </PdxReturns>
+  </PdxFunction>
+</div>
+
+</Tab>
+
+<Tab value="Code">
+
+```tsx
+<PdxFunction
+  name={"replace"}
+  definition={"def replace(**changes: Any) -> Self"}
+>
+  A copy with `changes` applied, skipping any whose value is `None`.
+
+  <PdxParameters>
+    <PdxParameter name={"changes"} type={"Any"}>
+      Field values to override.
+    </PdxParameter>
+  </PdxParameters>
+
+  <PdxReturns type={"Self"}>
+    A new configuration. The one this was called on is untouched.
+  </PdxReturns>
+</PdxFunction>
+```
+
+</Tab>
+
+</Tabs>
+
+The card for one member.
+
+The signature is the header, a band across the top of the card. It is highlighted in place rather
+than written into the page as a fenced block, because a fenced block carries its own border,
+radius, shadow and copy button. That chrome suits an example inside a docstring and not the thing
+being documented.
+
+`name` is not displayed. It labels the card for a screen reader, which would otherwise meet an
+unlabelled figure.
+
+## API Reference
+
+`PdxFunction`
+
+The card one member is documented in, headed by its signature and holding everything said about
+it.
+
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      required: true,
+      description: 'Names the card for a screen reader. Not displayed.',
+    },
+    definition: {
+      type: 'string',
+      description: 'The def line, already wrapped by fumero when too long for one line.',
+    },
+    children: {
+      type: 'ReactNode',
+      description: 'The description, and any parameter, return or source blocks.',
+    },
+  }}
+/>
