@@ -1,0 +1,45 @@
+---
+title: Installation
+description: Add fumero to a project and install the components into a docs app
+icon: Download
+---
+
+Fumero is a development dependency. It runs when documentation is built and is not part of what
+the project ships.
+
+```sh
+uv add fumero --dev  # or pip install fumero
+```
+
+## The components
+
+Generated MDX uses a small set of React components: cards for members, rows for parameters, links
+for types. They are installed as source rather than as a package, so a docs app owns them outright
+and no release overwrites local changes.
+
+```sh
+fumero init src/components/mdx/pdx.tsx
+```
+
+The path is wherever the app keeps its MDX components. Fumero creates any missing directories and
+overwrites the file at that path.
+
+## Registering them
+
+Fumadocs renders MDX with the components it is given, so the set has to be registered once:
+
+```tsx title="src/mdx-components.tsx"
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+import * as Pdx from '@/components/mdx/pdx';
+
+export function getMDXComponents(components?: MDXComponents): MDXComponents {
+  return {
+    ...defaultMdxComponents,
+    ...Pdx,
+    ...components,
+  };
+}
+```
+
+Without the registration, generated pages render their tags as literal text.

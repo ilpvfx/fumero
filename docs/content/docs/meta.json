@@ -4,6 +4,12 @@
   "pages": [
     "---Getting Started---",
     "index",
+    "installation",
+    "---Guides---",
+    "generating",
+    "docstrings",
+    "linking-items",
+    "configuration",
     "---Developers---",
     "components",
     "api"

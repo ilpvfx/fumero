@@ -1,0 +1,116 @@
+---
+title: Configuration
+description: Every option, and where to declare it
+icon: Settings
+---
+
+Every option is a flag on `fumero generate` and a key in a `[tool.fumero]` table. Options that do
+not change between runs belong in `pyproject.toml`:
+
+```toml title="pyproject.toml"
+[tool.fumero]
+output = "content/docs/api"
+base-url = "/docs/api"
+exclude = ["example.internal", "*.tests"]
+with-meta = true
+```
+
+```sh
+fumero generate example --clean
+```
+
+Each key is the option it sets, with hyphens permitted in place of underscores. A key naming no
+option is ignored, so a file written for a later version of fumero does not break an earlier one.
+
+## Precedence
+
+A flag overrides the config file, which overrides the defaults. An omitted flag is not the same as
+a flag set to false: omitted flags fall through to the file rather than replacing its value with a
+default.
+
+A build can therefore override one option on the command line without disturbing the rest.
+
+## Options
+
+### output
+
+The directory the `.mdx` tree is written into. Defaults to the working directory.
+
+```sh
+fumero generate example --output content/docs/api
+```
+
+### base-url
+
+The URL the output directory is served at, used to build the links between pages. An empty value
+makes links relative to the site root, which is correct only when the reference is served there.
+
+```sh
+fumero generate example --base-url /docs/api
+```
+
+### dialect
+
+The docstring dialect griffe parses: `auto`, `google`, `numpy` or `sphinx`. `auto` infers the
+dialect from the shape of each docstring.
+
+### exclude
+
+Glob patterns matched against each member's dotted path and against its short name:
+
+```toml
+exclude = [
+  "example.internal",  # one module, by path
+  "*.tests",           # every tests submodule
+  "deprecated",        # any member of that name, wherever it appears
+]
+```
+
+Excluding a module excludes its whole subtree.
+
+### clean
+
+Removes the module's previous output before rendering. A module owns `<output>/<name>.mdx` when it
+is a leaf and `<output>/<name>/` when it holds pages; both are removed, so a renamed or deleted
+symbol leaves no orphan page.
+
+### with-source
+
+Renders each function's own source below it, in a block that starts collapsed.
+
+### with-meta
+
+Writes a `meta.json` in each output directory naming the pages it holds, which is how Fumadocs
+orders the sidebar. Submodules are listed before classes, each group under its own heading when a
+directory holds both. Without it the order is alphabetical, which gives no indication of which
+entries open a subtree and which document a single symbol.
+
+## From Python
+
+The command line is a thin adapter over the public API, and every option is available from it:
+
+```python
+from pathlib import Path
+
+import fumero
+
+result = fumero.generate(
+    "example",
+    fumero.Config(output=Path("content/docs/api"), base_url="/docs/api", clean=True),
+)
+
+for link in result.unresolved:
+    print(link)
+```
+
+The library neither prints nor exits. A run reports what it wrote and what it could not link, and
+the caller decides how to treat the result, which is what allows a build script to fail on a
+broken reference:
+
+```python
+if not result.ok:
+    raise SystemExit("the reference has broken links")
+```
+
+`Config.from_pyproject()` reads the same `[tool.fumero]` table as the command line, so a script
+can adopt the project's settings rather than restating them.

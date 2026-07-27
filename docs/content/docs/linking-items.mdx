@@ -1,0 +1,117 @@
+---
+title: Linking Items
+description: Reference another documented symbol without writing a URL
+icon: Link
+---
+
+A docstring can link to anything else fumero documents by naming it, rather than by working out
+where its page will be written. Item links are explicit: fumero does not infer a link from prose.
+
+## Basic syntax
+
+Wrap the path in backticks inside a markdown link, with no target after it:
+
+```python
+def connect(host):
+    """Open a connection to `host`.
+
+    Close it with [`Connection.close`] when finished.
+    """
+```
+
+The path renders as written, linking to the page or anchor that documents it.
+
+A long path can be given a label instead, moving the path into the target:
+
+```python
+"""Close it with [`close`](Connection.close) when finished."""
+```
+
+The label is displayed and the full path becomes the link's tooltip. A label outside backticks
+renders as prose rather than code:
+
+```python
+"""Remember to [close the connection](Connection.close) when finished."""
+```
+
+<Callout title="A code span is never a link">
+  `` `Connection.close` `` on its own remains code. Tools that link every name they recognise also
+  link the ones mentioned in passing, so a docstring naming `list` or `open` acquires links nobody
+  asked for. Requiring the link syntax removes the guesswork.
+</Callout>
+
+## Valid paths
+
+A path may be written at any length. Every partial spelling of a name resolves to the same target:
+
+```python
+"""
+[`example.core.Connection`]   fully qualified
+[`core.Connection`]           partly qualified
+[`Connection`]                bare
+"""
+```
+
+Members are reached through their owner, which may itself be spelled at any length:
+
+```python
+"""
+[`example.core.Connection.close`]
+[`Connection.close`]
+"""
+```
+
+Resolution is scope first. On a class page, a bare name is matched against that class before the
+module as a whole, so `` [`close`] `` in `Connection`'s docstring resolves to `Connection.close`
+rather than to an unrelated module function of the same name.
+
+### Referring to the current page
+
+`self` stands for the page being rendered, so a class need not repeat its own name:
+
+```python
+class Connection:
+    """An open connection.
+
+    Release it with [`self.close`], or let [`self`] fall out of scope.
+    """
+```
+
+Both render with `self` replaced by the class, displaying `Connection.close`. This matters most in
+a base class, where the docstring is inherited and a hardcoded name would be wrong.
+
+## What is linkable
+
+Anything with a page or an anchor: modules, classes, nested classes, methods, module functions,
+attributes and type aliases. Private and excluded members have no page and cannot be linked.
+
+Types are the exception, in that they are never written by hand. Every documented type named in a
+signature, a parameter or a return value is linked automatically:
+
+```python
+def open(host: str) -> Connection:
+    """Open a connection to `host`."""
+```
+
+`Connection` in the return type becomes a link. The current page is excluded, so a class does not
+link to itself from its own signature.
+
+## Unresolved links
+
+The two forms fail differently, by design.
+
+A **shortcut link** names an item and nothing else, so a failure is a typo or a stale rename. It
+renders as plain code and is reported:
+
+```txt
+warning: item link `Connection.clos` in content/docs/api/example.mdx matched no documented item
+```
+
+The run still succeeds, since the rest of the page is correct.
+
+A **labelled link** is left exactly as written and is not reported. The syntax is also that of an
+ordinary markdown link, so `[the guide](./guide)` and `[the repository](https://example.com)` must
+keep working. Fumero recognises URLs, anchors and relative paths and leaves them untouched, and it
+cannot distinguish a link to a hand-written page from an item link containing a typo.
+
+Where a labelled link needs to be checked, write it as a shortcut link and drop the label.

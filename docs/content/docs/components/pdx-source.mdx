@@ -39,7 +39,7 @@ def callout_type(kind: str) -> CalloutType:
 
 </Tabs>
 
-Written under each function when `with-source` is set, and omitted entirely otherwise. It starts
+Written under each function when [with-source](../../configuration/#with-source) is set, and omitted entirely otherwise. It starts
 collapsed, since the source is there to be consulted rather than read through.
 
 The block inside is an ordinary fenced code block, highlighted by the host app's own MDX pipeline
@@ -51,7 +51,8 @@ its own does not close the block early and leave the rest of the page as prose.
 
 `PdxSource`
 
-A function's own source, in a block that starts collapsed. Written only when `with-source` is set.
+A function's own source, in a block that starts collapsed. Written only when
+[with-source](../../configuration/#with-source) is set.
 
 <TypeTable
   type={{

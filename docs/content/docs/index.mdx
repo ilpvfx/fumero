@@ -1,7 +1,82 @@
 ---
 title: Introduction
-description: Welcome to Fumero's documentation
+description: A tool that turns a Python module into a Fumadocs API reference
 icon: BookOpen
 ---
 
-...
+Fumero is a documentation tool for Python. It reads an importable module with
+[griffe](https://mkdocstrings.github.io/griffe/) and writes a [Fumadocs](https://fumadocs.dev)
+API reference: one page per module and one per class, alongside the React components that render
+them.
+
+The reference is generated from the code. Signatures, type annotations and default values are read
+from the source, and the prose is taken from the docstrings. Nothing is restated by hand, so the
+reference cannot fall out of step with the code it documents.
+
+## What it makes
+
+A function and the docstring already written for it:
+
+```python title="src/example/__init__.py"
+def connect(host: str, port: int = 8080) -> Connection:
+    """Open a connection to `host`.
+
+    Args:
+        host: The address to connect to.
+        port: The port to connect on.
+
+    Returns:
+        An open connection.
+    """
+```
+
+become a page that reads as a reference rather than as a transcript of the source:
+
+<PdxFunction
+  name={"connect"}
+  definition={"def connect(host: str, port: int = 8080) -> Connection"}
+>
+  Open a connection to `host`.
+  <PdxParameters>
+    <PdxParameter name={"host"} type={"str"}>
+      The address to connect to.
+    </PdxParameter>
+
+    <PdxParameter name={"port"} type={"int"} value={"8080"}>
+      The port to connect on.
+    </PdxParameter>
+
+  </PdxParameters>
+  <PdxReturns type={"Connection"}>An open connection.</PdxReturns>
+</PdxFunction>
+
+The types come from the annotations, the default from the signature, and every documented type in
+it becomes a link to its own page.
+
+## Where to go next
+
+<Cards>
+  <Card
+    title="Installation"
+    href="/installation"
+    description="Add fumero to a project and install the components into a docs app."
+  />
+  <Card
+    title="Generating"
+    href="/generating"
+    description="Run fumero over a module, and control what reaches the page."
+  />
+  <Card
+    title="Writing docstrings"
+    href="/docstrings"
+    description="The sections fumero reads, and what each one becomes."
+  />
+  <Card
+    title="Configuration"
+    href="/configuration"
+    description="Every option, and where to declare it."
+  />
+</Cards>
+
+Fumero documents itself, so the [API reference](/api/fumero) in the sidebar is a worked example of
+the output as much as it is a reference.

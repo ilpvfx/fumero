@@ -1,0 +1,107 @@
+---
+title: Generating
+description: Run fumero over a module, and control what reaches the page
+icon: FileText
+---
+
+Fumero reads a module the way Python imports one, so it needs a module it can import:
+
+```sh
+uv init --lib example
+cd example
+uv add fumero --dev
+```
+
+Give `src/example/__init__.py` something to document:
+
+```python title="src/example/__init__.py"
+def connect(host):
+    """Open a connection to `host`."""
+
+
+def _retry(host):
+    """Try again after a failed attempt."""
+```
+
+Then run fumero over it:
+
+```sh
+fumero generate example --output content/docs/api
+```
+
+```txt
+wrote 1 pages to content/docs/api
+```
+
+The result is `content/docs/api/example.mdx`, documenting `connect` with its signature and its
+description.
+
+## What reaches the page
+
+`_retry` is absent by design. Fumero documents the public surface of a module: a name starting
+with an underscore is private, and a module defining `__all__` is taken at its word, so anything
+it does not export is left out.
+
+```python title="src/example/__init__.py"
+__all__ = ["connect"]
+
+
+def connect(host): ...
+
+
+def disconnect(host): ...  # public by name, but unexported, so undocumented
+```
+
+Public members are documented in place. Modules and classes each get a page, while functions and
+attributes are rendered on the page of whatever holds them, under an anchor named after them.
+
+## Naming the module
+
+The argument is an import path rather than a path on disk, because fumero imports what it
+documents. The module has to be installed in the environment fumero runs in An unknown name is
+reported rather than silently producing an empty page:
+
+```sh
+fumero generate exmaple
+```
+
+```txt
+error: could not load 'exmaple'. Is it importable in this environment?
+```
+
+A package is a module that happens to hold other modules, so both are documented the same way.
+`example` documents the whole tree; `example.core` documents that subtree alone, which is the way
+to publish parts of one package separately.
+
+## Where the pages go
+
+`--output` is the directory the tree is written into. `--base-url` is the URL that directory is
+served at, which fumero needs in order to build the links between pages. Set it whenever the
+reference is not served from the site root:
+
+```sh
+fumero generate example --output content/docs/api --base-url /docs/api
+```
+
+`--clean` removes the module's previous output before writing, so a renamed or deleted symbol
+leaves no orphan page. `--with-meta` writes the `meta.json` files that order the Fumadocs sidebar,
+listing submodules before classes instead of leaving both in alphabetical order.
+
+```sh
+fumero generate example --output content/docs/api --base-url /docs/api --clean --with-meta
+```
+
+Options that do not change between runs belong in the [configuration](/configuration) table.
+
+## Unresolved links
+
+Fumero reports the references it could not resolve and continues:
+
+```txt
+warning: item link `Connection.clos` in content/docs/api/example.mdx matched no documented item
+wrote 1 pages to content/docs/api
+```
+
+The run succeeds, since the pages are otherwise correct. An unresolved reference is rendered as
+plain code rather than as a link to a page that does not exist. See
+[linking items](/linking-items) for what resolves.

@@ -1,0 +1,139 @@
+---
+title: Writing Docstrings
+description: The sections fumero reads, and what each one becomes
+icon: PenLine
+---
+
+The prose on a generated page comes from the docstrings.
+
+```python
+def connect(host, port=8080):
+    """Open a connection to `host`.
+
+    Args:
+        host: The address to connect to.
+        port: The port to connect on.
+
+    Returns:
+        An open connection.
+
+    Raises:
+        TimeoutError: The host did not answer.
+    """
+```
+
+Each section becomes a distinct part of the page. Parameters and the return value are rendered as
+rows carrying their types and defaults; `Raises:` becomes a callout.
+
+## What comes from the code
+
+Only the prose is taken from the docstring. Names, types, defaults and the signature are read from
+the source, so an undocumented parameter still appears, without a description:
+
+```python
+def connect(host, port=8080, timeout=1.0):
+    """Open a connection to `host`.
+
+    Args:
+        host: The address to connect to.
+    """
+```
+
+All three parameters are documented, in signature order, with `port` and `timeout` shown untyped
+and undescribed. Nothing is omitted for going unmentioned, and the order cannot drift from the
+order a caller passes them in.
+
+## The first paragraph
+
+The first paragraph opens the page and is also the text shown on the navigation card for that
+item. It is read in isolation as often as in place, so it should stand on its own.
+
+```python
+class Connection:
+    """An open connection to a host.
+
+    Instances are not thread safe, and closing one twice is an error.
+    """
+```
+
+The card shows the first line; the remainder appears on the page.
+
+## Classes
+
+Google style documents constructor arguments on the class rather than on `__init__`, and fumero
+follows that convention:
+
+```python
+class Connection:
+    """An open connection to a host.
+
+    Args:
+        host: The address that was connected to.
+    """
+
+    def __init__(self, host): ...
+```
+
+A dataclass has no handwritten `__init__` to document, so an `Attributes:` entry also describes
+the constructor parameter of the same name. Each description is therefore written once:
+
+```python
+@dataclass
+class Options:
+    """How to connect.
+
+    Attributes:
+        host: The address to connect to.
+        port: The port to connect on.
+    """
+
+    host: str
+    port: int = 8080
+```
+
+An explicit `Args:` entry takes precedence over an `Attributes:` entry. An attribute's own
+docstring takes precedence over both.
+
+## Examples and admonitions
+
+An `Examples:` section keeps its prose as prose and its code as code:
+
+```python
+def connect(host):
+    """Open a connection to `host`.
+
+    Examples:
+        Point it at a host and close it when finished.
+
+        >>> connection = connect("localhost")
+        >>> connection.close()
+    """
+```
+
+Admonitions become callouts. `warning`, `caution` and `attention` render as warnings, `danger` and
+`error` as errors, and every other keyword as a note:
+
+```python
+def close(self):
+    """Release the connection.
+
+    Warning:
+        Closing twice raises.
+    """
+```
+
+## Linking
+
+Docstrings can reference anything else fumero documents by name, and types in signatures are
+linked automatically. See [linking items](/linking-items).
+
+## Choosing a dialect
+
+By default griffe infers the dialect from the shape of each docstring. Set one explicitly when a
+module mixes styles and the inference is wrong:
+
+```sh
+fumero generate example --dialect numpy
+```
+
+The available dialects are `auto`, `google`, `numpy` and `sphinx`.
