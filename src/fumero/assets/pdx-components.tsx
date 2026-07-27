@@ -360,11 +360,26 @@ export function PdxAttributes({ children }: { children?: React.ReactNode }) {
  * On a class page the constructor is not a member you look up, it is how the class is made, so its
  * parameters are headed by a section rather than shown as a `def __init__` card. They are still
  * parameters, so they read as they do inside one: rows on a hairline, on the card surface every
- * other group of rows sits on. What is missing compared to a member card is only the signature
- * header, because the heading above has already said what these belong to.
+ * other group of rows sits on.
+ *
+ * The signature band is the call, not the method behind it. Same treatment as a member card,
+ * because it answers the same question the definition on a function card does.
  */
-export function PdxConstructor({ children }: { children?: React.ReactNode }) {
-  return <div className={cn(CARD, 'px-4 py-3.5', ROWS)}>{children}</div>;
+export function PdxConstructor(props: {
+  /** The call that builds one, already wrapped by the CLI when it is too long for one line. */
+  definition?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className={CARD}>
+      {props.definition && (
+        <div className={cn(SCROLL, 'border-b border-fd-border bg-fd-muted/40 px-4 py-3')}>
+          <InlineCode code={props.definition} className="text-[13px]" />
+        </div>
+      )}
+      <div className={cn('px-4 py-3.5', ROWS)}>{props.children}</div>
+    </div>
+  );
 }
 
 export function PdxAttribute(props: {

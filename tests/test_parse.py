@@ -12,6 +12,7 @@ from fumero.parse import (
     load_module,
     module_attributes,
     parse_class,
+    parse_class_definition,
     parse_docstring,
     parse_function,
     parse_function_definition,
@@ -131,6 +132,43 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
     assert [attribute.name for attribute in attributes] == ["ROOT", "TIMEOUT"]
     assert attributes[0].annotation == "Path"
     assert attributes[1].value == "30"
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        pytest.param(
+            "class Client:\n    def __init__(self, host: str = 'localhost') -> None: ...",
+            "Client(host: str = 'localhost')",
+            id="constructor call",
+        ),
+        pytest.param("class Client: ...", "Client()", id="no constructor"),
+        pytest.param(
+            "class Client:\n"
+            "    def __init__(self, host: str, port: int, timeout: float, retries: int) -> None:"
+            " ...",
+            "Client(\n    host: str,\n    port: int,\n    timeout: float,\n    retries: int,\n)",
+            id="wrapped",
+        ),
+    ],
+)
+def test_parse_class_definition(
+    visit: Callable[[str], griffe.Module], source: str, expected: str
+):
+    cls = cast(griffe.Class, visit(source)["Client"])
+
+    assert parse_class_definition(cls, width=40) == expected
+
+
+def test_parse_class_records_the_call_that_builds_one(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        class Client:
+            """A connection."""
+
+            def __init__(self, host: str) -> None: ...
+    ''')
+
+    assert parse_class(cast(griffe.Class, module["Client"])).definition == "Client(host: str)"
 
 
 def test_parse_class_lists_public_methods_sorted(visit: Callable[[str], griffe.Module]):

@@ -11,12 +11,13 @@ title: {{ class.name }}
 
 {{ class.docstring.description | encode }}
 
-{# What you pass to build one, without the `def __init__` line: on a class page the constructor is
-   not a member you look up, it is how the class itself is made, and its name is noise. #}
+{# What you pass to build one. The signature is the call rather than the `def __init__` behind it:
+   on a class page the constructor is not a member you look up, it is how the class itself is
+   made, and the method that implements that is a different question. #}
 {% if class.constructor and class.constructor.docstring.parameters %}
-## Constructor Parameters [#section-constructor-parameters]
+## Constructor [#section-constructor-parameters]
 
-<PdxConstructor>
+<PdxConstructor {{ jsx_props(definition=class.definition) }}>
 {{ macros.parameter_rows(class.constructor.docstring.parameters) }}
 </PdxConstructor>
 {% endif %}

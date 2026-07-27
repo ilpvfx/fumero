@@ -53,6 +53,8 @@ class Class:
     Attributes:
         name: The short name.
         docstring: The parsed docstring.
+        definition: The call that builds one, e.g. `Client(host: str)`. Wrapped one parameter to a
+            line when it is too long to read across, as a function definition is.
         constructor: `__init__` or `__new__` as a [`Function`], or `None` for a class defining
             neither. A constructor is a method, so it is documented as one rather than as a second
             kind of thing with a signature of its own.
@@ -63,6 +65,7 @@ class Class:
 
     name: str
     docstring: ParsedDocstring
+    definition: str = ""
     constructor: Function | None = None
     attributes: list[Property] = field(default_factory=list)
     functions: list[Function] = field(default_factory=list)

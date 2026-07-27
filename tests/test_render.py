@@ -126,6 +126,16 @@ def test_render_reports_a_link_that_matched_nothing(render: Callable[..., tuple[
     assert result.unresolved[0].page == output / "example" / "Client" / "index.mdx"
 
 
+def test_render_heads_the_constructor_with_the_call_that_builds_one(
+    render: Callable[..., tuple[Path, Result]],
+):
+    output, _ = render()
+
+    assert '<PdxConstructor definition={"Client(host: str)"}>' in (
+        output / "example" / "Client" / "index.mdx"
+    ).read_text()
+
+
 def test_render_links_the_types_in_a_signature(render: Callable[..., tuple[Path, Result]]):
     output, _ = render(base_url="/docs/api")
 

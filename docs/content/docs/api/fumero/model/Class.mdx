@@ -10,9 +10,9 @@ A class and everything documented on its page.
 
 
 
-## Constructor Parameters [#section-constructor-parameters]
+## Constructor [#section-constructor-parameters]
 
-<PdxConstructor>
+<PdxConstructor definition={"Class(\n    name: str,\n    docstring: ParsedDocstring,\n    definition: str = '',\n    constructor: Function | None = None,\n    attributes: list[Property] = list(),\n    functions: list[Function] = list(),\n    classes: list[Class] = list(),\n)"}>
 
 <PdxParameter name={"name"} type={"str"}>
 The short name.
@@ -20,6 +20,11 @@ The short name.
 
 <PdxParameter name={"docstring"} type={"ParsedDocstring"} links={{"ParsedDocstring": "/api/fumero/model/ParsedDocstring"}}>
 The parsed docstring.
+</PdxParameter>
+
+<PdxParameter name={"definition"} type={"str"} value={"''"}>
+The call that builds one, e.g. `Client(host: str)`. Wrapped one parameter to a
+line when it is too long to read across, as a function definition is.
 </PdxParameter>
 
 <PdxParameter name={"constructor"} type={"Function | None"} value={"None"} links={{"Function": "/api/fumero/model/Function"}}>
@@ -71,6 +76,19 @@ The short name.
 
 <PdxAttribute name={"docstring"} type={"ParsedDocstring"} links={{"ParsedDocstring": "/api/fumero/model/ParsedDocstring"}}>
 The parsed docstring.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> definition [#definition]
+
+</div>
+
+
+<PdxAttribute name={"definition"} type={"str"} value={"''"}>
+The call that builds one, e.g. `Client(host: str)`. Wrapped one parameter to a
+line when it is too long to read across, as a function definition is.
 </PdxAttribute>
 
 

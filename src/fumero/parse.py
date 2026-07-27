@@ -8,6 +8,7 @@ takes apart.
 """
 
 import re
+from collections.abc import Sequence
 from typing import cast
 
 import griffe
@@ -20,6 +21,7 @@ __all__ = [
     "load_module",
     "module_attributes",
     "parse_class",
+    "parse_class_definition",
     "parse_docstring",
     "parse_function",
     "parse_function_definition",
@@ -161,6 +163,7 @@ def parse_class(cls: griffe.Class, config: Config | None = None) -> Class:
     return Class(
         name=cls.name,
         docstring=docstring,
+        definition=parse_class_definition(cls),
         constructor=_constructor(cls, docstring.parameters, attributes),
         attributes=attributes,
         functions=sorted(functions, key=lambda function: function.name),
@@ -395,9 +398,38 @@ def parse_function_definition(function: griffe.Function, width: int = 84) -> str
         ```
     """
 
-    parts = _parameter_parts(function)
     returns = f" -> {remove_prefix(str(function.annotation))}" if function.annotation else ""
-    head = f"def {function.name}("
+
+    return _definition(f"def {function.name}(", _parameter_parts(function), returns, width)
+
+
+def parse_class_definition(cls: griffe.Class, width: int = 84) -> str:
+    """The constructor call as documentation shows it, rather than the `__init__` behind it.
+
+    A class page is titled after the class and its parameters are headed `Constructor Parameters`,
+    so the line worth showing is the one a reader would write to build an instance. `def __init__`
+    names the method that implements that, which is a different question, and carries a return type
+    of `None` where the useful answer is the class the page is about.
+
+    Args:
+        cls: The class to describe.
+        width: The column to break the line at.
+
+    Returns:
+        A constructor call, on one line where it fits and on several where it does not.
+
+    Examples:
+        ```python
+        parse_class_definition(cls)
+        # "Client(host: str = 'localhost')"
+        ```
+    """
+
+    return _definition(f"{cls.name}(", _parameter_parts(cls), "", width)
+
+
+def _definition(head: str, parts: Sequence[str], returns: str, width: int) -> str:
+    """One call or definition, wrapped when it is too long to read across."""
 
     one_line = f"{head}{', '.join(parts)}){returns}"
     if len(one_line) <= width:
@@ -410,11 +442,11 @@ def parse_function_definition(function: griffe.Function, width: int = 84) -> str
     return f"{head}\n{body}){returns}"
 
 
-def _parameter_parts(function: griffe.Function) -> list[str]:
+def _parameter_parts(parent: griffe.Alias | griffe.Class | griffe.Function) -> list[str]:
     """Each parameter as a definition writes it, with the markers that separate the kinds."""
 
     parts: list[str] = []
-    parameters = _callable_parameters(function)
+    parameters = _callable_parameters(parent)
 
     has_positional_only = any(
         parameter.kind is griffe.ParameterKind.positional_only for parameter in parameters
