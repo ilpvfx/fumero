@@ -1,5 +1,6 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from 'next/image';
+import { version } from '@/lib/version';
 
 /**
  * Shared layout configurations
@@ -27,6 +28,9 @@ export const baseOptions: BaseLayoutProps = {
           className="mr-2 hidden dark:inline"
         />
         Fumero
+        <span className="ml-2 rounded-md border border-fd-border bg-fd-muted/50 px-1.5 py-0.5 font-mono text-[10px] leading-normal text-fd-muted-foreground">
+          {`v${version}`}
+        </span>
       </>
     ),
   },

@@ -1,4 +1,5 @@
 import "@/app/global.css";
+import { basePath } from "@/lib/base-path";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
@@ -15,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           search={{
             options: {
               type: "static",
-              api: "/api/search",
+              api: `${basePath}/api/search`,
             },
           }}
         >

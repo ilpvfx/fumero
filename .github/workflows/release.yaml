@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - _
+
+# allow a later push to the same ref to cancel the jobs still running
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # opens a release pull request collecting the commits since the last tag, and tags a release when
+  # that pull request is merged. everything below runs on the merge, so the checkout already holds
+  # the bumped version and the written changelog.
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release-created: ${{ steps.release.outputs.release_created }}
+      tag-name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release-created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # the token trusted publishing exchanges for its credentials, so no api token is stored
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Upload wheel to GitHub release
+        run: gh release upload "${{ needs.release-please.outputs.tag-name }}" dist/*.whl
+
+      - name: Publish to PyPI
+        run: uv publish --trusted-publishing always
+
+  docs:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release-created }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: docs
+
+      - name: Build the site
+        run: npm run build
+        working-directory: docs
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      # next writes its assets under `_next`, and anything starting with an underscore is invisible
+      # to jekyll. this file is what tells pages not to run it.
+      - name: Disable Jekyll
+        run: touch out/.nojekyll
+        working-directory: docs
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/out
+
+      - name: Deploy to Pages
+        id: deploy
+        uses: actions/deploy-pages@v5
