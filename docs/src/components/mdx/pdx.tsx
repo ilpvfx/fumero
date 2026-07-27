@@ -321,7 +321,10 @@ export function PdxFunction(props: {
           <InlineCode code={props.definition} className="text-[13px]" />
         </div>
       )}
-      <div className="prose-no-margin px-4 py-3.5 text-sm text-fd-muted-foreground empty:hidden">
+      {/* The vertical padding matches `Group`'s top margin, and has to. The space under the
+          description is set by the first group's margin, so anything smaller here leaves the
+          prose sitting high between the signature above it and the rule below. */}
+      <div className="prose-no-margin px-4 py-5 text-sm text-fd-muted-foreground empty:hidden">
         {props.children}
       </div>
     </figure>
