@@ -144,6 +144,11 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
         ),
         pytest.param("class Client: ...", "Client()", id="no constructor"),
         pytest.param(
+            "class Client:\n    def __new__(cls, host: str): ...",
+            "Client(host: str)",
+            id="constructed through new",
+        ),
+        pytest.param(
             "class Client:\n"
             "    def __init__(self, host: str, port: int, timeout: float, retries: int) -> None:"
             " ...",

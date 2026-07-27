@@ -208,28 +208,20 @@ def _constructor(
     keeping the two copies in step. An explicit `Args:` still wins where there is one.
     """
 
-    for name in ("__init__", "__new__"):
-        member = cls.members.get(name)
+    member = _constructor_member(cls)
+    if member is None:
+        return None
 
-        # a class member is an Alias pointing at the function, never a Function, so this is
-        # matched on kind rather than by type
-        if member is None or member.kind is not griffe.Kind.FUNCTION:
-            continue
+    function = parse_function(member)
 
-        function = parse_function(cast(griffe.Function, member))
+    descriptions = {entry.name: entry.description for entry in attributes if entry.description}
+    descriptions.update({entry.name: entry.description for entry in documented if entry.description})
 
-        descriptions = {entry.name: entry.description for entry in attributes if entry.description}
-        descriptions.update({
-            entry.name: entry.description for entry in documented if entry.description
-        })
+    for parameter in function.docstring.parameters:
+        if parameter.description is None:
+            parameter.description = descriptions.get(parameter.name)
 
-        for parameter in function.docstring.parameters:
-            if parameter.description is None:
-                parameter.description = descriptions.get(parameter.name)
-
-        return function
-
-    return None
+    return function
 
 
 def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> ParsedDocstring:
@@ -500,13 +492,39 @@ def _parameter_parts(parent: griffe.Alias | griffe.Class | griffe.Function) -> l
 def _callable_parameters(
     parent: griffe.Alias | griffe.Class | griffe.Function,
 ) -> list[griffe.Parameter]:
-    """The parameters a caller passes, without the receiver a bound method is called through."""
+    """The parameters a caller passes, without the receiver a bound method is called through.
 
-    parameters = list(parent.parameters)
+    A class is asked through its constructor rather than directly, because `griffe.Class`
+    reports the parameters of `__init__` alone, and a class built through `__new__` would
+    otherwise look like it takes nothing.
+    """
+
+    if parent.kind is griffe.Kind.CLASS:
+        constructor = _constructor_member(cast(griffe.Class, parent))
+        parameters = list(constructor.parameters) if constructor is not None else []
+
+    else:
+        parameters = list(parent.parameters)
+
     if parameters and parameters[0].name in {"self", "cls"}:
         return parameters[1:]
 
     return parameters
+
+
+def _constructor_member(cls: griffe.Alias | griffe.Class) -> griffe.Function | None:
+    """`__init__` or `__new__`, whichever the class defines, preferring the former.
+
+    Matched on kind rather than by type: a class member is an Alias pointing at the function,
+    never a Function.
+    """
+
+    for name in ("__init__", "__new__"):
+        member = cls.members.get(name)
+        if member is not None and member.kind is griffe.Kind.FUNCTION:
+            return cast(griffe.Function, member)
+
+    return None
 
 
 def _attribute_property(attribute: griffe.Attribute, description: str | None = None) -> Property:
