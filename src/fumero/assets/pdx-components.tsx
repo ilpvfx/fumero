@@ -147,6 +147,11 @@ function TypeToken({
     let matched = false;
 
     for (const match of children.matchAll(IDENT)) {
+      // `hasOwn` rather than a bare lookup. A signature naming `constructor`, `toString` or
+      // `valueOf` would otherwise find the one on `Object.prototype`, and a function is truthy,
+      // so it would survive the guard below and reach `href`.
+      if (!Object.hasOwn(links, match[0])) continue;
+
       const href = links[match[0]];
       if (!href) continue;
 
@@ -316,13 +321,15 @@ export function PdxFunction(props: {
   name: string;
   /** The `def` line, already wrapped by the CLI when it is too long for one. */
   definition?: string;
+  /** Documented types named in the signature, mapped to the page each is documented on. */
+  links?: Links;
   children?: React.ReactNode;
 }) {
   return (
     <figure aria-label={props.name} className={CARD}>
       {props.definition && (
         <div className={cn(SCROLL, 'border-b border-fd-border bg-fd-muted/40 px-4 py-3')}>
-          <InlineCode code={props.definition} className="text-[13px]" />
+          <InlineCode code={props.definition} className="text-[13px]" links={props.links} />
         </div>
       )}
       {/* The vertical padding matches `Group`'s top margin, and has to. The space under the
@@ -372,13 +379,15 @@ export function PdxAttributes({ children }: { children?: React.ReactNode }) {
 export function PdxConstructor(props: {
   /** The call that builds one, already wrapped by the CLI when it is too long for one line. */
   definition?: string;
+  /** Documented types named in the call, mapped to the page each is documented on. */
+  links?: Links;
   children?: React.ReactNode;
 }) {
   return (
     <div className={CARD}>
       {props.definition && (
         <div className={cn(SCROLL, 'border-b border-fd-border bg-fd-muted/40 px-4 py-3')}>
-          <InlineCode code={props.definition} className="text-[13px]" />
+          <InlineCode code={props.definition} className="text-[13px]" links={props.links} />
         </div>
       )}
       <div className={cn('px-4 py-3.5', ROWS)}>{props.children}</div>

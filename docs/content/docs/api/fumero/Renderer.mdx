@@ -15,7 +15,7 @@ recursion. One renderer handles one tree; make another for another package.
 
 ## Constructor [#section-constructor-parameters]
 
-<PdxConstructor definition={"Renderer(config: Config)"}>
+<PdxConstructor definition={"Renderer(config: Config)"} links={{"Config": "/api/fumero/Config"}}>
 
 <PdxParameter name={"config"} type={"Config"} links={{"Config": "/api/fumero/Config"}}>
 What to render and where.
@@ -54,7 +54,7 @@ What to render and where.
 
 </div>
 
-<PdxFunction name={"render"} definition={"def render(module: Module, root: Path) -> Result"}>
+<PdxFunction name={"render"} definition={"def render(module: Module, root: Path) -> Result"} links={{"Module": "/api/fumero/model/Module", "Result": "/api/fumero/Result"}}>
 
 Write `module` and everything under it into `root`.
 

@@ -146,6 +146,18 @@ def test_render_links_the_types_in_a_signature(render: Callable[..., tuple[Path,
     )
 
 
+def test_render_links_the_types_in_a_definition(render: Callable[..., tuple[Path, Result]]):
+    output, _ = render(base_url="/docs/api")
+
+    # `connect` is itself documented, so a map read from the rendered `def` line rather than from
+    # the annotations behind it would link the function's own name in its own signature
+    assert (
+        '<PdxFunction name={"connect"} definition={"def connect(host: str) -> Timeout"} '
+        'links={{"Timeout": "/docs/api/example#Timeout"}}>'
+        in (output / "example" / "core.mdx").read_text()
+    )
+
+
 def test_render_links_a_documented_exception_it_raises(
     render: Callable[..., tuple[Path, Result]],
 ):

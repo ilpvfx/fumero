@@ -21,7 +21,7 @@ import jinja2
 from .config import Config
 from .link import LinkTable
 from .mdx import callout_type, encode_text, escape_identifier, fence, jsx_props, summarize
-from .model import Card, Class, Module
+from .model import Card, Class, Module, ParsedDocstring
 from .parse import load_module, module_attributes, parse_class, parse_function, public_members
 
 __all__ = ["Renderer", "Result", "UnresolvedLink", "generate"]
@@ -116,6 +116,7 @@ class Renderer:
             "jsx_props": jsx_props,
             "links_for": self._links_for,
             "link_for": self._link_for,
+            "signature_links": self._signature_links,
         }
         template_filters: dict[str, Any] = {
             "encode": self._encode,
@@ -131,6 +132,30 @@ class Renderer:
         """Every documented type named in a signature, so the components can link them."""
 
         return self._links.types_in(annotation, self._scope)
+
+    def _signature_links(self, docstring: ParsedDocstring) -> dict[str, str] | None:
+        """Every documented type a definition names, gathered from the annotations behind it.
+
+        Read from the annotations rather than from the rendered `def` line, because that line
+        holds parameter names too. A parameter named after something documented would otherwise
+        be linked as though it were the type.
+
+        Args:
+            docstring: The parsed docstring whose parameters and return type to read.
+
+        Returns:
+            The name to URL pairs, or `None` when the signature names nothing documented.
+        """
+
+        annotations = [parameter.annotation for parameter in docstring.parameters]
+        if docstring.returns is not None:
+            annotations.append(docstring.returns.annotation)
+
+        found: dict[str, str] = {}
+        for annotation in annotations:
+            found.update(self._links.types_in(annotation, self._scope) or {})
+
+        return found or None
 
     def _link_for(self, name: str) -> str | None:
         """One name rather than every name in a signature.

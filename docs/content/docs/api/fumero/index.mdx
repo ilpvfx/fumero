@@ -124,7 +124,7 @@ The `.tsx` source, exactly as it ships.
 
 </div>
 
-<PdxFunction name={"encode_text"} definition={"def encode_text(\n    text: str | None,\n    links: LinkTable,\n    scope: str | None = None,\n    on_unresolved: Callable[[str], None] | None = None,\n) -> str"}>
+<PdxFunction name={"encode_text"} definition={"def encode_text(\n    text: str | None,\n    links: LinkTable,\n    scope: str | None = None,\n    on_unresolved: Callable[[str], None] | None = None,\n) -> str"} links={{"LinkTable": "/api/fumero/LinkTable"}}>
 
 Escape the characters MDX would read as markup, and resolve the item links.
 
@@ -183,7 +183,7 @@ MDX ready to be written into a page.
 
 </div>
 
-<PdxFunction name={"generate"} definition={"def generate(module: str, config: Config | None = None) -> Result"}>
+<PdxFunction name={"generate"} definition={"def generate(module: str, config: Config | None = None) -> Result"} links={{"Config": "/api/fumero/Config", "Result": "/api/fumero/Result"}}>
 
 Document a module.
 
@@ -269,7 +269,7 @@ The path written to.
 
 </div>
 
-<PdxFunction name={"load_module"} definition={"def load_module(name: str, config: Config | None = None) -> Module"}>
+<PdxFunction name={"load_module"} definition={"def load_module(name: str, config: Config | None = None) -> Module"} links={{"Config": "/api/fumero/Config", "Module": "/api/fumero/model/Module"}}>
 
 Read a module and hand back griffe's view of it.
 
