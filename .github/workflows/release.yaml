@@ -58,49 +58,8 @@ jobs:
   docs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release-created }}
-    runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Install node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: docs/package-lock.json
-
-      - name: Configure Pages
-        id: pages
-        uses: actions/configure-pages@v6
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: docs
-
-      - name: Build the site
-        run: npm run build
-        working-directory: docs
-        env:
-          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-
-      # next writes its assets under `_next`, and anything starting with an underscore is invisible
-      # to jekyll. this file is what tells pages not to run it.
-      - name: Disable Jekyll
-        run: touch out/.nojekyll
-        working-directory: docs
-
-      - name: Upload the site
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: docs/out
-
-      - name: Deploy to Pages
-        id: deploy
-        uses: actions/deploy-pages@v5
+    uses: ./.github/workflows/docs.yaml
