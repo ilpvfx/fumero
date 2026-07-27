@@ -1,6 +1,69 @@
-<div style="padding:15px;" align="center">
+<div align="center">
   <h1>Fumero</h1>
+  <p><strong>Generate a Fumadocs API reference from a Python module.</strong></p>
 </div>
+
+Fumero reads an importable module with [griffe](https://mkdocstrings.github.io/griffe/) and writes
+a [Fumadocs](https://fumadocs.dev) API reference: one page per module and one per class, alongside
+the React components that render them.
+
+The reference is generated from the code. Signatures, type annotations and default values are read
+from the source, and the prose is taken from the docstrings. Nothing is restated by hand, so the
+reference cannot fall out of step with the code it documents.
+
+## Install
+
+```sh
+uv add fumero --dev  # or pip install fumero
+```
+
+## Quick start
+
+Install the components into the docs app that will render the output:
+
+```sh
+fumero init src/components/mdx/pdx.tsx
+```
+
+Register them once, so every generated page knows how to render itself:
+
+```tsx
+// src/mdx-components.tsx
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import * as Pdx from '@/components/mdx/pdx';
+
+export function getMDXComponents(components?: MDXComponents): MDXComponents {
+  return { ...defaultMdxComponents, ...Pdx, ...components };
+}
+```
+
+Then document a module:
+
+```sh
+fumero generate example --output content/docs/api --base-url /docs/api --with-meta
+```
+
+## Configuration
+
+Every option is a flag on `fumero generate` and a key in a `[tool.fumero]` table. Options that do
+not change between runs belong in `pyproject.toml`:
+
+```toml
+[tool.fumero]
+output = "content/docs/api"
+base-url = "/docs/api"
+exclude = ["example.internal", "*.tests"]
+with-meta = true
+```
+
+A flag overrides the file, which overrides the defaults.
+
+## Documentation
+
+The full documentation lives at [here](https://ilpvfx.github.io/fumero/). Fumero documents
+itself, so the API reference there is a working example of the output as much as it is a reference.
+
+## Development
 
 This project uses [devenv](https://devenv.sh) to manage the development environment. It sets up
 Python, uv, and everything else you need.
@@ -11,4 +74,10 @@ Python, uv, and everything else you need.
 
 # Enter the dev shell - this installs all dependencies automatically
 devenv shell
+```
+
+```sh
+uv run ruff check
+uv run ty check
+uv run pytest
 ```
