@@ -54,7 +54,7 @@ What to render and where.
 
 </div>
 
-<PdxFunction name={"render"} definition={"def render(module: Module, root: Path) -> Result"} links={{"Module": "/api/fumero/model/Module", "Result": "/api/fumero/Result"}}>
+<PdxFunction name={"render"} definition={"def render(module: griffe.Module, root: Path) -> Result"} links={{"Result": "/api/fumero/Result"}}>
 
 Write `module` and everything under it into `root`.
 
@@ -67,7 +67,7 @@ symbol whose own page is written later.
 
 <PdxParameters>
 
-<PdxParameter name={"module"} type={"Module"} links={{"Module": "/api/fumero/model/Module"}}>
+<PdxParameter name={"module"} type={"griffe.Module"}>
 The module to write, as <PdxRef href="/api/fumero#load_module">load_module</PdxRef> returns it.
 </PdxParameter>
 

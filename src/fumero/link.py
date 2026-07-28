@@ -8,7 +8,6 @@ Only the names collected here resolve. That is deliberate: a reference that miss
 text rather than turning into a link that scrolls nowhere.
 """
 
-import re
 from collections.abc import Iterator, Mapping, Sequence
 from typing import Self, cast
 
@@ -21,8 +20,6 @@ __all__ = ["LinkTable", "expand_self"]
 
 # members that live under an anchor on their owner's page, rather than getting a page of their own
 _ANCHORED_KINDS = frozenset({griffe.Kind.ATTRIBUTE, griffe.Kind.FUNCTION})
-
-_IDENTIFIER_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
 class LinkTable(Mapping[str, str]):
@@ -101,13 +98,15 @@ class LinkTable(Mapping[str, str]):
 
         return self._routes.get(path)
 
-    def types_in(self, annotation: str | None, scope: str | None = None) -> dict[str, str] | None:
-        """The name to URL pairs for the documented types named in a type annotation.
+    def types_in(self, types: Sequence[str], scope: str | None = None) -> dict[str, str] | None:
+        """The name to URL pairs for the documented types a signature names.
 
-        This is what lets a rendered signature turn its types into links.
+        This is what lets a rendered signature turn its types into links. It is given the names
+        the parser resolved rather than a string to search, because a name alone cannot say what
+        it refers to: `Path` is `pathlib.Path` in one module and a documented class in another.
 
         Args:
-            annotation: A type as written, such as `list[Client] | None`.
+            types: Names the documented module defines, spelled as the annotation spells them.
             scope: The page being rendered. It is never linked, so a class's own signature and
                 attributes do not link back to the page you are already reading.
 
@@ -116,13 +115,9 @@ class LinkTable(Mapping[str, str]):
             mapping, so the caller can leave the prop off the element entirely.
         """
 
-        if not annotation:
-            return None
-
-        names = (match.group(0) for match in _IDENTIFIER_RE.finditer(annotation))
         found = {
             name: self._routes[name]
-            for name in names
+            for name in types
             if name in self._routes and name != scope
         }
 

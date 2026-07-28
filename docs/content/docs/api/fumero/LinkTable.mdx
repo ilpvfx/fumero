@@ -39,7 +39,7 @@ package that this one should link into.
 
 </div>
 
-<PdxFunction name={"collect"} definition={"def collect(module: Module, config: Config) -> Self"} links={{"Module": "/api/fumero/model/Module", "Config": "/api/fumero/Config"}}>
+<PdxFunction name={"collect"} definition={"def collect(module: griffe.Module, config: Config) -> Self"} links={{"Config": "/api/fumero/Config"}}>
 
 Walk `module` and record where each documented name will be rendered.
 
@@ -52,7 +52,7 @@ actually written.
 
 <PdxParameters>
 
-<PdxParameter name={"module"} type={"Module"} links={{"Module": "/api/fumero/model/Module"}}>
+<PdxParameter name={"module"} type={"griffe.Module"}>
 The module to walk, as <PdxRef href="/api/fumero#load_module">load_module</PdxRef> returns it.
 </PdxParameter>
 
@@ -116,11 +116,13 @@ The URL, or `None` when the path names nothing documented.
 
 </div>
 
-<PdxFunction name={"types_in"} definition={"def types_in(\n    annotation: str | None,\n    scope: str | None = None,\n) -> dict[str, str] | None"}>
+<PdxFunction name={"types_in"} definition={"def types_in(\n    types: Sequence[str],\n    scope: str | None = None,\n) -> dict[str, str] | None"}>
 
-The name to URL pairs for the documented types named in a type annotation.
+The name to URL pairs for the documented types a signature names.
 
-This is what lets a rendered signature turn its types into links.
+This is what lets a rendered signature turn its types into links. It is given the names
+the parser resolved rather than a string to search, because a name alone cannot say what
+it refers to: `Path` is `pathlib.Path` in one module and a documented class in another.
 
 
 
@@ -128,8 +130,8 @@ This is what lets a rendered signature turn its types into links.
 
 <PdxParameters>
 
-<PdxParameter name={"annotation"} type={"str | None"}>
-A type as written, such as `list[Client] | None`.
+<PdxParameter name={"types"} type={"Sequence[str]"}>
+Names the documented module defines, spelled as the annotation spells them.
 </PdxParameter>
 
 <PdxParameter name={"scope"} type={"str | None"} value={"None"}>

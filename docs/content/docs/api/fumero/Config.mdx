@@ -160,7 +160,7 @@ them. Without one the order is alphabetical, which mixes the two together.
 
 </div>
 
-<PdxFunction name={"excludes"} definition={"def excludes(obj: Object | Alias) -> bool"}>
+<PdxFunction name={"excludes"} definition={"def excludes(obj: griffe.Object | griffe.Alias) -> bool"}>
 
 Whether `obj` matches one of the <PdxRef href="/api/fumero/Config#exclude">Config.exclude</PdxRef> patterns.
 
@@ -174,7 +174,7 @@ Patterns are matched against the dotted path and against the short name, so
 
 <PdxParameters>
 
-<PdxParameter name={"obj"} type={"Object | Alias"}>
+<PdxParameter name={"obj"} type={"griffe.Object | griffe.Alias"}>
 The member to test.
 </PdxParameter>
 

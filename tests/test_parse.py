@@ -17,7 +17,8 @@ from fumero.parse import (
     parse_function,
     parse_function_definition,
     public_members,
-    remove_prefix,
+    strip_module_prefix,
+    strip_stdlib_prefixes,
 )
 
 
@@ -130,7 +131,7 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
     attributes = module_attributes(module, Config())
 
     assert [attribute.name for attribute in attributes] == ["ROOT", "TIMEOUT"]
-    assert attributes[0].annotation == "Path"
+    assert attributes[0].annotation == "pathlib.Path"
     assert attributes[1].value == "30"
 
 
@@ -360,7 +361,7 @@ def test_parse_docstring_describes_the_return_value(visit: Callable[[str], griff
     docstring = parse_docstring(cast(griffe.Function, module["resolve"]))
 
     assert docstring.returns is not None
-    assert docstring.returns.annotation == "Path"
+    assert docstring.returns.annotation == "pathlib.Path"
     assert docstring.returns.description == "The directory everything is relative to."
 
 
@@ -487,7 +488,7 @@ def test_parse_docstring_of_an_undocumented_function_still_reads_the_signature(
         ),
         pytest.param(
             "import pathlib\n\n\ndef connect() -> pathlib.Path: ...",
-            "def connect() -> Path",
+            "def connect() -> pathlib.Path",
             id="return annotation",
         ),
     ],
@@ -535,13 +536,29 @@ def test_parse_function_definition_wraps_a_long_signature(
 @pytest.mark.parametrize(
     "input, expected",
     [
-        pytest.param("builtins.int", "int"),
-        pytest.param("typing.Optional[builtins.str]", "Optional[str]"),
-        pytest.param("pathlib.Path", "Path"),
-        pytest.param("a.b.c.Class", "Class"),
-        pytest.param("obj.method", "obj.method"),
-        pytest.param("int", "int"),
+        pytest.param("builtins.int", "int", id="builtin"),
+        pytest.param("pathlib.Path", "Path", id="pathlib"),
+        pytest.param("typing.Optional[builtins.str]", "Optional[str]", id="nested"),
+        pytest.param("collections.abc.Sequence[str]", "Sequence[str]", id="collections.abc"),
+        pytest.param("datetime.datetime", "datetime", id="datetime"),
+        pytest.param("griffe.Module", "griffe.Module", id="another package is left alone"),
+        pytest.param("int", "int", id="unqualified"),
     ],
 )
-def test_remove_prefix(input: str, expected: str):
-    assert remove_prefix(input) == expected
+def test_strip_stdlib_prefixes(input: str, expected: str):
+    assert strip_stdlib_prefixes(input) == expected
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        pytest.param("fumero.Config", "Config", id="the documented module"),
+        pytest.param("fumero.model.Module", "Module", id="one of its submodules"),
+        pytest.param("list[fumero.Config]", "list[Config]", id="nested"),
+        pytest.param("griffe.Module", "griffe.Module", id="another package is left alone"),
+        pytest.param("fumero", "fumero", id="the module itself"),
+        pytest.param("Config", "Config", id="already unqualified"),
+    ],
+)
+def test_strip_module_prefix(input: str, expected: str):
+    assert strip_module_prefix(input, "fumero") == expected

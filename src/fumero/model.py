@@ -149,9 +149,13 @@ class Property:
         annotation: The type annotation, or `None` when the item carries none.
         description: Prose from the docstring, or `None` when the item is undocumented.
         value: The default or assigned value as source text, or `None`.
+        types: The names in the annotation that the documented module defines, as the annotation
+            writes them. Only these are worth linking: two packages can name a type alike, and
+            what a name refers to is settled where it is written rather than by how it reads.
     """
 
     name: str
     annotation: str | None
     description: str | None
     value: str | None
+    types: tuple[str, ...] = ()

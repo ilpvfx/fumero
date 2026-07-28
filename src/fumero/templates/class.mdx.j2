@@ -17,7 +17,7 @@ title: {{ class.name }}
 {% if class.constructor and class.constructor.docstring.parameters %}
 ## Constructor [#section-constructor-parameters]
 
-<PdxConstructor {{ jsx_props(definition=class.definition, links=signature_links(class.constructor.docstring)) }}>
+<PdxConstructor {{ jsx_props(definition=(class.definition | shorten), links=signature_links(class.constructor.docstring)) }}>
 {{ macros.parameter_rows(class.constructor.docstring.parameters) }}
 </PdxConstructor>
 {% endif %}

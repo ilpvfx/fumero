@@ -26,10 +26,21 @@ __all__ = [
     "parse_function",
     "parse_function_definition",
     "public_members",
-    "remove_prefix",
+    "strip_module_prefix",
+    "strip_stdlib_prefixes",
 ]
 
-_MODULE_PREFIX_RE = re.compile(r"(?:[a-z_][a-z0-9_]*\.)+([A-Z][A-Za-z0-9_]*)")
+# the standard library is shortened wherever it appears, since every reader already knows
+# where these live and the path only crowds the signature
+_STDLIB_PREFIXES = (
+    "typing.",
+    "builtins.",
+    "collections.abc.",
+    "typing_extensions.",
+    "decimal.",
+    "datetime.",
+    "pathlib.",
+)
 
 
 def load_module(name: str, config: Config | None = None) -> griffe.Module:
@@ -239,7 +250,10 @@ def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> Pa
         parameters and return type, since those come from the signature.
     """
 
-    parameters = [_parameter_property(parameter) for parameter in _callable_parameters(parent)]
+    parameters = [
+        _parameter_property(parameter, parent.package.name)
+        for parameter in _callable_parameters(parent)
+    ]
     attributes = [
         _attribute_property(attribute)
         for attribute in parent.attributes.values()
@@ -270,7 +284,7 @@ def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> Pa
                     returns.description = section.value[0].description or None
 
             case griffe.DocstringSectionRaises():
-                raises = [_raise_property(raised) for raised in section.value]
+                raises = [_raise_property(raised, parent.package.name) for raised in section.value]
 
             case griffe.DocstringSectionAdmonition():
                 admonitions.append(_admonition(section))
@@ -290,7 +304,7 @@ def _described_parameters(
     descriptions = {entry.name: entry.description for entry in documented}
 
     return [
-        _parameter_property(parameter, descriptions.get(parameter.name))
+        _parameter_property(parameter, parent.package.name, descriptions.get(parameter.name))
         for parameter in _callable_parameters(parent)
     ]
 
@@ -319,19 +333,26 @@ def _return_property(parent: griffe.Alias | griffe.Class | griffe.Function) -> P
     if not isinstance(parent, griffe.Alias | griffe.Function):
         return None
 
-    annotation = remove_prefix(str(parent.returns)) if parent.returns is not None else None
+    module = parent.package.name
+    annotation = _annotation(parent.returns, module) if parent.returns is not None else None
 
-    return Property(parent.name, annotation, None, None)
+    return Property(parent.name, annotation, None, None, _own_types(parent.returns, module))
 
 
-def _raise_property(documented: griffe.DocstringRaise) -> Property:
+def _raise_property(documented: griffe.DocstringRaise, module: str) -> Property:
     """One `Raises:` entry, named after the exception it records."""
 
     annotation = (
-        remove_prefix(str(documented.annotation)) if documented.annotation is not None else None
+        _annotation(documented.annotation, module) if documented.annotation is not None else None
     )
 
-    return Property(annotation or "", annotation, documented.description or None, None)
+    return Property(
+        annotation or "",
+        annotation,
+        documented.description or None,
+        None,
+        _own_types(documented.annotation, module),
+    )
 
 
 def _admonition(section: griffe.DocstringSectionAdmonition) -> Admonition:
@@ -357,13 +378,17 @@ def _examples(section: griffe.DocstringSectionExamples) -> list[Admonition]:
     ]
 
 
-def _parameter_property(parameter: griffe.Parameter, description: str | None = None) -> Property:
+def _parameter_property(
+    parameter: griffe.Parameter, module: str, description: str | None = None
+) -> Property:
     annotation = (
-        remove_prefix(str(parameter.annotation)) if parameter.annotation is not None else None
+        _annotation(parameter.annotation, module) if parameter.annotation is not None else None
     )
     value = str(parameter.default) if parameter.default is not None else None
 
-    return Property(parameter.name, annotation, description, value)
+    return Property(
+        parameter.name, annotation, description, value, _own_types(parameter.annotation, module)
+    )
 
 
 def parse_function_definition(function: griffe.Function, width: int = 84) -> str:
@@ -390,7 +415,8 @@ def parse_function_definition(function: griffe.Function, width: int = 84) -> str
         ```
     """
 
-    returns = f" -> {remove_prefix(str(function.annotation))}" if function.annotation else ""
+    module = function.package.name
+    returns = f" -> {_annotation(function.annotation, module)}" if function.annotation else ""
 
     return _definition(f"def {function.name}(", _parameter_parts(function), returns, width)
 
@@ -437,6 +463,7 @@ def _definition(head: str, parts: Sequence[str], returns: str, width: int) -> st
 def _parameter_parts(parent: griffe.Alias | griffe.Class | griffe.Function) -> list[str]:
     """Each parameter as a definition writes it, with the markers that separate the kinds."""
 
+    module = parent.package.name
     parts: list[str] = []
     parameters = _callable_parameters(parent)
 
@@ -471,7 +498,7 @@ def _parameter_parts(parent: griffe.Alias | griffe.Class | griffe.Function) -> l
                 part = parameter.name
 
         if parameter.annotation is not None:
-            part += f": {remove_prefix(str(parameter.annotation))}"
+            part += f": {_annotation(parameter.annotation, module)}"
             separator = " = "
 
         else:
@@ -529,30 +556,99 @@ def _constructor_member(cls: griffe.Alias | griffe.Class) -> griffe.Function | N
 
 def _attribute_property(attribute: griffe.Attribute, description: str | None = None) -> Property:
     annotation = (
-        remove_prefix(str(attribute.annotation)) if attribute.annotation is not None else None
+        _annotation(attribute.annotation, attribute.package.name)
+        if attribute.annotation is not None
+        else None
     )
     value = str(attribute.value) if attribute.value is not None else None
 
-    return Property(attribute.name, annotation, description, value)
+    return Property(
+        attribute.name,
+        annotation,
+        description,
+        value,
+        _own_types(attribute.annotation, attribute.package.name),
+    )
 
 
-def remove_prefix(text: str) -> str:
-    """Strip the module paths from type references, so `pathlib.Path` reads as `Path`.
+def strip_stdlib_prefixes(annotation: str) -> str:
+    """Drop the module path from the standard library types an annotation names.
 
-    Relies on the convention that class names are CapitalCase. A dotted name ending in a lowercase
-    word is left alone, since it is far more likely to name a value than a type.
+    Which module `Path` or `Sequence` lives in is not something a reader has to be told, so the
+    path is noise in a signature. Only the standard library is shortened this way, because it is
+    the one set of names every Python reader already knows.
 
     Args:
-        text: A type annotation as written.
+        annotation: A type as written.
 
     Returns:
-        The annotation with each type named on its own.
+        The annotation with the standard library paths removed.
 
     Examples:
         ```python
-        remove_prefix("dict[str, pathlib.Path]")
+        strip_stdlib_prefixes("dict[str, pathlib.Path]")
         # 'dict[str, Path]'
         ```
     """
 
-    return _MODULE_PREFIX_RE.sub(r"\1", text.replace("builtins.", ""))
+    for prefix in _STDLIB_PREFIXES:
+        annotation = annotation.replace(prefix, "")
+
+    return annotation
+
+
+def strip_module_prefix(annotation: str, module: str) -> str:
+    """Drop the path from the types `module` defines, leaving every other package qualified.
+
+    A reader of a module's own reference knows where its types come from, so `fumero.Config` reads
+    as `Config`. A type from somewhere else keeps its path: shortening `griffe.Module` to `Module`
+    would present it as one of the documented module's own, and link it to one.
+
+    Args:
+        annotation: A type as written.
+        module: The name of the module being documented.
+
+    Returns:
+        The annotation with the documented module's own paths cut back to the name at the end.
+
+    Examples:
+        ```python
+        strip_module_prefix("fumero.model.Module", "fumero")
+        # 'Module'
+        ```
+    """
+
+    own = re.compile(rf"\b{re.escape(module)}(?:\.[A-Za-z_][A-Za-z0-9_]*)*\.([A-Za-z_][A-Za-z0-9_]*)")
+
+    return own.sub(r"\1", annotation)
+
+
+def _own_types(annotation: object, module: str) -> tuple[str, ...]:
+    """The names in `annotation` that `module` defines, spelled as the annotation spells them.
+
+    Read from griffe's resolution rather than from the text, because the text cannot settle it. A
+    module that imports `pathlib.Path` and also defines a `Path` of its own writes both as `Path`,
+    and only the name each one resolves to says which is which.
+    """
+
+    if not isinstance(annotation, griffe.Expr):
+        return ()
+
+    prefix = f"{module}."
+
+    return tuple(
+        name.name
+        for name in annotation.iterate()
+        if isinstance(name, griffe.ExprName) and name.canonical_path.startswith(prefix)
+    )
+
+
+def _annotation(annotation: object, module: str) -> str:
+    """One type as the model records it: our own paths taken off, everyone else's left on.
+
+    The standard library keeps its prefix here, and loses it only when a page is written. A link
+    is decided from what is recorded, so `pathlib.Path` has to stay distinguishable from a `Path`
+    the documented module defines itself, right up until the moment it is displayed.
+    """
+
+    return strip_module_prefix(str(annotation), module)

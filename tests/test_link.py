@@ -13,7 +13,11 @@ def table() -> LinkTable:
         "__init__.py": dedent('''
             """An example package."""
 
-            __all__ = ["Client", "core"]
+            __all__ = ["Client", "Path", "core"]
+
+
+            class Path:
+                """Not the one in the standard library."""
 
 
             class Client:
@@ -83,20 +87,18 @@ def test_resolve_a_self_path(table: LinkTable, path: str, scope: str | None, exp
 
 
 @pytest.mark.parametrize(
-    "annotation, scope, expected",
+    "types, scope, expected",
     [
-        pytest.param(
-            "list[Client] | None", None, {"Client": "/api/example/Client"}, id="documented type"
-        ),
-        pytest.param("Client", "Client", None, id="the page it is written on"),
-        pytest.param("int", None, None, id="nothing documented"),
-        pytest.param(None, None, None, id="no annotation"),
+        pytest.param(["Client"], None, {"Client": "/api/example/Client"}, id="documented type"),
+        pytest.param(["Client"], "Client", None, id="the page it is written on"),
+        pytest.param(["int"], None, None, id="nothing documented"),
+        pytest.param([], None, None, id="nothing in the annotation"),
     ],
 )
 def test_types_in(
-    table: LinkTable, annotation: str | None, scope: str | None, expected: dict[str, str] | None
+    table: LinkTable, types: list[str], scope: str | None, expected: dict[str, str] | None
 ):
-    assert table.types_in(annotation, scope) == expected
+    assert table.types_in(types, scope) == expected
 
 
 @pytest.mark.parametrize(

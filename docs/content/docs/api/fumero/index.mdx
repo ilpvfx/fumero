@@ -269,7 +269,7 @@ The path written to.
 
 </div>
 
-<PdxFunction name={"load_module"} definition={"def load_module(name: str, config: Config | None = None) -> Module"} links={{"Config": "/api/fumero/Config", "Module": "/api/fumero/model/Module"}}>
+<PdxFunction name={"load_module"} definition={"def load_module(name: str, config: Config | None = None) -> griffe.Module"} links={{"Config": "/api/fumero/Config"}}>
 
 Read a module and hand back griffe's view of it.
 
@@ -305,7 +305,7 @@ Supplies the docstring dialect. Defaults are used when this is `None`.
 </PdxParameters>
 
 
-<PdxReturns type={"Module"} links={{"Module": "/api/fumero/model/Module"}}>
+<PdxReturns type={"griffe.Module"}>
 The module, and everything under it.
 </PdxReturns>
 

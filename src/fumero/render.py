@@ -22,11 +22,29 @@ from .config import Config
 from .link import LinkTable
 from .mdx import callout_type, encode_text, escape_identifier, fence, jsx_props, summarize
 from .model import Card, Class, Module, ParsedDocstring
-from .parse import load_module, module_attributes, parse_class, parse_function, public_members
+from .parse import (
+    load_module,
+    module_attributes,
+    parse_class,
+    parse_function,
+    public_members,
+    strip_stdlib_prefixes,
+)
 
 __all__ = ["Renderer", "Result", "UnresolvedLink", "generate"]
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
+
+
+def _shorten(annotation: str | None) -> str | None:
+    """An annotation as a page shows it, with the standard library paths taken off.
+
+    Applied when the page is written rather than when the module is read, so that a link is
+    still decided from the qualified name. `pathlib.Path` and a documented `Path` read alike
+    but resolve differently, and shortening any earlier would lose the difference.
+    """
+
+    return None if annotation is None else strip_stdlib_prefixes(annotation)
 
 
 @dataclass(frozen=True)
@@ -124,14 +142,15 @@ class Renderer:
             "fence": fence,
             "ident": escape_identifier,
             "summarize": summarize,
+            "shorten": _shorten,
         }
         self._environment.globals.update(template_globals)
         self._environment.filters.update(template_filters)
 
-    def _links_for(self, annotation: str | None) -> dict[str, str] | None:
-        """Every documented type named in a signature, so the components can link them."""
+    def _links_for(self, types: Sequence[str]) -> dict[str, str] | None:
+        """Every documented type a signature names, so the components can link them."""
 
-        return self._links.types_in(annotation, self._scope)
+        return self._links.types_in(types, self._scope)
 
     def _signature_links(self, docstring: ParsedDocstring) -> dict[str, str] | None:
         """Every documented type a definition names, gathered from the annotations behind it.
@@ -147,15 +166,11 @@ class Renderer:
             The name to URL pairs, or `None` when the signature names nothing documented.
         """
 
-        annotations = [parameter.annotation for parameter in docstring.parameters]
+        types = [name for parameter in docstring.parameters for name in parameter.types]
         if docstring.returns is not None:
-            annotations.append(docstring.returns.annotation)
+            types.extend(docstring.returns.types)
 
-        found: dict[str, str] = {}
-        for annotation in annotations:
-            found.update(self._links.types_in(annotation, self._scope) or {})
-
-        return found or None
+        return self._links.types_in(types, self._scope)
 
     def _link_for(self, name: str) -> str | None:
         """One name rather than every name in a signature.

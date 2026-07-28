@@ -39,7 +39,7 @@
 {% macro render_function(function, with_source=False, kind="func") -%}
 {{ toc_heading(kind, function.name) }}
 
-<PdxFunction {{ jsx_props(name=function.name, definition=function.definition, links=signature_links(function.docstring)) }}>
+<PdxFunction {{ jsx_props(name=function.name, definition=(function.definition | shorten), links=signature_links(function.docstring)) }}>
 
 {{ function.docstring.description | encode }}
 
@@ -82,7 +82,7 @@
 {{ render_parameters(function.docstring.parameters) }}
 {% endif %}
 {% if function.docstring.returns %}
-<PdxReturns {{ jsx_props(type=function.docstring.returns.annotation, links=links_for(function.docstring.returns.annotation)) }}>
+<PdxReturns {{ jsx_props(type=(function.docstring.returns.annotation | shorten), links=links_for(function.docstring.returns.types)) }}>
 {{ function.docstring.returns.description | encode }}
 </PdxReturns>
 {% endif %}
@@ -94,7 +94,7 @@
    section of its own, so the wrapper is the caller's to choose. #}
 {% macro parameter_rows(parameters) -%}
 {% for parameter in parameters %}
-<PdxParameter {{ jsx_props(name=parameter.name, type=parameter.annotation, value=parameter.value, links=links_for(parameter.annotation)) }}>
+<PdxParameter {{ jsx_props(name=parameter.name, type=(parameter.annotation | shorten), value=parameter.value, links=links_for(parameter.types)) }}>
 {{ parameter.description | encode }}
 </PdxParameter>
 {% endfor %}
@@ -110,10 +110,10 @@
 {{ toc_heading("attr", attribute.name) }}
 
 {% if attribute.description %}
-<PdxAttribute {{ jsx_props(name=attribute.name, type=attribute.annotation, value=attribute.value, links=links_for(attribute.annotation)) }}>
+<PdxAttribute {{ jsx_props(name=attribute.name, type=(attribute.annotation | shorten), value=attribute.value, links=links_for(attribute.types)) }}>
 {{ attribute.description | encode }}
 </PdxAttribute>
 {% else %}
-<PdxAttribute {{ jsx_props(name=attribute.name, type=attribute.annotation, value=attribute.value, links=links_for(attribute.annotation)) }} />
+<PdxAttribute {{ jsx_props(name=attribute.name, type=(attribute.annotation | shorten), value=attribute.value, links=links_for(attribute.types)) }} />
 {% endif %}
 {%- endmacro %}

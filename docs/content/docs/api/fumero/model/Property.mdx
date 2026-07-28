@@ -15,7 +15,7 @@ only in which fields happen to be filled in.
 
 ## Constructor [#section-constructor-parameters]
 
-<PdxConstructor definition={"Property(\n    name: str,\n    annotation: str | None,\n    description: str | None,\n    value: str | None,\n)"}>
+<PdxConstructor definition={"Property(\n    name: str,\n    annotation: str | None,\n    description: str | None,\n    value: str | None,\n    types: tuple[str, ...] = (),\n)"}>
 
 <PdxParameter name={"name"} type={"str"}>
 The name as written in the source.
@@ -31,6 +31,12 @@ Prose from the docstring, or `None` when the item is undocumented.
 
 <PdxParameter name={"value"} type={"str | None"}>
 The default or assigned value as source text, or `None`.
+</PdxParameter>
+
+<PdxParameter name={"types"} type={"tuple[str, ...]"} value={"()"}>
+The names in the annotation that the documented module defines, as the annotation
+writes them. Only these are worth linking: two packages can name a type alike, and
+what a name refers to is settled where it is written rather than by how it reads.
 </PdxParameter>
 
 </PdxConstructor>
@@ -88,6 +94,20 @@ Prose from the docstring, or `None` when the item is undocumented.
 
 <PdxAttribute name={"value"} type={"str | None"}>
 The default or assigned value as source text, or `None`.
+</PdxAttribute>
+
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">attr</span> types [#types]
+
+</div>
+
+
+<PdxAttribute name={"types"} type={"tuple[str, ...]"} value={"()"}>
+The names in the annotation that the documented module defines, as the annotation
+writes them. Only these are worth linking: two packages can name a type alike, and
+what a name refers to is settled where it is written rather than by how it reads.
 </PdxAttribute>
 
 
