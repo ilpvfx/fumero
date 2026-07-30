@@ -116,9 +116,7 @@ class LinkTable(Mapping[str, str]):
         """
 
         found = {
-            name: self._routes[name]
-            for name in types
-            if name in self._routes and name != scope
+            name: self._routes[name] for name in types if name in self._routes and name != scope
         }
 
         return found or None

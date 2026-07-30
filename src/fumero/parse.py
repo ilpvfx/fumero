@@ -226,7 +226,9 @@ def _constructor(
     function = parse_function(member)
 
     descriptions = {entry.name: entry.description for entry in attributes if entry.description}
-    descriptions.update({entry.name: entry.description for entry in documented if entry.description})
+    descriptions.update(
+        {entry.name: entry.description for entry in documented if entry.description}
+    )
 
     for parameter in function.docstring.parameters:
         if parameter.description is None:
@@ -618,7 +620,9 @@ def strip_module_prefix(annotation: str, module: str) -> str:
         ```
     """
 
-    own = re.compile(rf"\b{re.escape(module)}(?:\.[A-Za-z_][A-Za-z0-9_]*)*\.([A-Za-z_][A-Za-z0-9_]*)")
+    own = re.compile(
+        rf"\b{re.escape(module)}(?:\.[A-Za-z_][A-Za-z0-9_]*)*\.([A-Za-z_][A-Za-z0-9_]*)"
+    )
 
     return own.sub(r"\1", annotation)
 

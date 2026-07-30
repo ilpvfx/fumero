@@ -158,9 +158,7 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
         ),
     ],
 )
-def test_parse_class_definition(
-    visit: Callable[[str], griffe.Module], source: str, expected: str
-):
+def test_parse_class_definition(visit: Callable[[str], griffe.Module], source: str, expected: str):
     cls = cast(griffe.Class, visit(source)["Client"])
 
     assert parse_class_definition(cls, width=40) == expected

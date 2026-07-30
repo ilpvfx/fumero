@@ -14,11 +14,13 @@ from fumero.mdx import (
 
 @pytest.fixture
 def links() -> LinkTable:
-    return LinkTable({
-        "Client": "/api/example/Client",
-        "Client.close": "/api/example/Client#close",
-        "example.Client": "/api/example/Client",
-    })
+    return LinkTable(
+        {
+            "Client": "/api/example/Client",
+            "Client.close": "/api/example/Client#close",
+            "example.Client": "/api/example/Client",
+        }
+    )
 
 
 @pytest.mark.parametrize(
@@ -120,7 +122,7 @@ def test_summarize(text: str | None, expected: str):
     "props, expected",
     [
         pytest.param({"name": "close", "type": None}, 'name={"close"}', id="none is omitted"),
-        pytest.param({"value": "'a'"}, 'value={"\'a\'"}', id="quotes survive"),
+        pytest.param({"value": "'a'"}, "value={\"'a'\"}", id="quotes survive"),
         pytest.param(
             {"links": {"Client": "/api/example/Client"}},
             'links={{"Client": "/api/example/Client"}}',

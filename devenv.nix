@@ -35,6 +35,7 @@
     };
 
     ruff.enable = true;
+    ruff-format.enable = true;
 
     ty = {
       enable = true;
