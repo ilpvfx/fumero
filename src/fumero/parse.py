@@ -18,6 +18,7 @@ from .error import ModuleNotFound
 from .model import Admonition, Class, Function, ParsedDocstring, Property
 
 __all__ = [
+    "is_own_member",
     "load_module",
     "module_attributes",
     "parse_class",
@@ -82,6 +83,10 @@ def public_members(
     `__all__` decides what is public. A module that defines one is taken at its word; a module that
     does not falls back to the convention that a leading underscore means private.
 
+    A class or a function is collected wherever it is bound, since re-exporting one from a package
+    is how a curated API is written. A submodule is collected only where it lives, which is what
+    keeps the walk finite: see [`is_own_member`].
+
     Args:
         module: The module to look through.
         kind: The kind of member to collect, such as `griffe.Kind.CLASS`.
@@ -101,8 +106,45 @@ def public_members(
     return [
         member
         for name, member in module.members.items()
-        if member.kind is kind and is_public(name, member)
+        if member.kind is kind
+        and is_public(name, member)
+        and (kind is not griffe.Kind.MODULE or is_own_member(module, member))
     ]
+
+
+def is_own_member(
+    parent: griffe.Object | griffe.Alias, member: griffe.Object | griffe.Alias
+) -> bool:
+    """Whether `parent` defines `member`, rather than importing it from somewhere else.
+
+    This is what bounds the walk. Documentation nests, and a name bound in two places would
+    otherwise be walked in both: a stub that writes `import package.module` binds the whole package
+    inside its own submodule, so a walk that reads that as a child arrives back where it started
+    and never finishes. PySide6 ships that line in nearly every stub it has.
+
+    Applied to submodules and to nested classes, which are the two things walked into. It is
+    deliberately not applied to the classes and functions on a module's own page, because
+    re-exporting those from a package is how a curated API is written, and each is documented once
+    wherever it is bound.
+
+    Args:
+        parent: The module or class being walked.
+        member: One of its members.
+
+    Returns:
+        `True` when `parent` is where the member is defined.
+
+    Examples:
+        ```python
+        is_own_member(package, package.members["core"])       # True, `package.core`
+        is_own_member(package.core, core.members["package"])  # False, an import of the root
+        ```
+    """
+
+    try:
+        return member.canonical_path == f"{parent.canonical_path}.{member.name}"
+    except (griffe.AliasResolutionError, griffe.CyclicAliasError):
+        return False
 
 
 def module_attributes(module: griffe.Module, config: Config) -> list[Property]:
@@ -156,6 +198,7 @@ def parse_class(cls: griffe.Class, config: Config | None = None) -> Class:
         parse_class(cast(griffe.Class, member), config)
         for member in cls.members.values()
         if member.kind is griffe.Kind.CLASS
+        and is_own_member(cls, member)
         and not member.name.startswith("_")
         and not config.excludes(member)
     ]

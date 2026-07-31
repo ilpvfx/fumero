@@ -112,3 +112,26 @@ def test_types_in(
 )
 def test_expand_self(path: str, scope: str | None, expected: str):
     assert expand_self(path, scope) == expected
+
+
+def test_collect_walks_a_package_that_imports_itself_once():
+    # the table is collected before anything is written, so this is where a package bound inside
+    # its own submodule sent the walk back to the root and kept it there
+    modules = {
+        "__init__.py": '"""An example package."""',
+        "core.py": dedent('''
+            """The core module."""
+
+            import example
+
+            def connect() -> None:
+                """Open a connection."""
+        '''),
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        table = LinkTable.collect(package, Config(base_url="/api"))
+
+    assert table.resolve("example.core") == "/api/example/core"
+    assert table.resolve("example.core.connect") == "/api/example/core#connect"
+    assert not [href for href in table.values() if href.count("/example") > 1]

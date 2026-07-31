@@ -119,6 +119,74 @@ def test_public_members_drop_excluded_members(visit: Callable[[str], griffe.Modu
     assert [member.name for member in members] == ["Client"]
 
 
+def test_public_members_leave_out_a_module_a_submodule_imports():
+    # a stub that writes `import package` inside its own submodule binds the whole package there,
+    # and walking that as a child leads back to the root and never terminates
+    modules = {
+        "__init__.py": '"""An example package."""',
+        "core.py": dedent('''
+            """The core module."""
+
+            import example
+            import example.core
+        '''),
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        core = cast(griffe.Module, package.members["core"])
+
+        assert [
+            member.name for member in public_members(package, griffe.Kind.MODULE, Config())
+        ] == ["core"]
+        assert public_members(core, griffe.Kind.MODULE, Config()) == []
+
+
+def test_public_members_keep_a_class_the_package_re_exports():
+    modules = {
+        "__init__.py": dedent('''
+            """An example package."""
+
+            from example.core import Client
+        '''),
+        "core.py": dedent('''
+            """The core module."""
+
+            class Client:
+                """A connection."""
+        '''),
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        members = public_members(package, griffe.Kind.CLASS, Config())
+
+        assert [member.name for member in members] == ["Client"]
+
+
+def test_parse_class_leaves_out_a_nested_class_it_imports():
+    # a class body may import a name, and two classes importing each other would otherwise be
+    # walked into one another until the recursion runs out
+    modules = {
+        "__init__.py": '"""An example package."""',
+        "core.py": dedent('''
+            """The core module."""
+
+            class Options:
+                """How to connect."""
+
+            class Client:
+                """A connection."""
+
+                from example.core import Options
+        '''),
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        core = cast(griffe.Module, package.members["core"])
+        parsed = parse_class(cast(griffe.Class, core.members["Client"]))
+
+        assert parsed.classes == []
+
+
 def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.Module]):
     module = visit("""
         import pathlib

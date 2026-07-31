@@ -235,3 +235,29 @@ def test_generate_loads_the_module_itself(tmp_path: Path, package: griffe.Module
 
     assert result.pages
     assert (output / "example" / "index.mdx").exists()
+
+
+def test_render_walks_a_package_that_imports_itself_once(tmp_path: Path):
+    # PySide6 writes `import PySide6.QtWidgets` in nearly every stub it ships, which binds the
+    # package inside its own submodule. Following that led the walk back to the root, and the run
+    # never finished: every page was rendered again one level deeper, forever.
+    modules = {
+        "__init__.py": '"""An example package."""',
+        "core.py": dedent('''
+            """The core module."""
+
+            import example
+            import example.core
+
+            class Client:
+                """A connection."""
+        '''),
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        output = tmp_path / "out"
+        result = Renderer(Config(output=output)).render(package, output)
+
+    written = sorted(page.relative_to(output).as_posix() for page in result.pages)
+
+    assert written == ["example/core/Client.mdx", "example/core/index.mdx", "example/index.mdx"]

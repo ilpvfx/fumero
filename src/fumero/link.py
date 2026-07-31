@@ -14,7 +14,7 @@ from typing import Self, cast
 import griffe
 
 from .config import Config
-from .parse import module_attributes, public_members
+from .parse import is_own_member, module_attributes, public_members
 
 __all__ = ["LinkTable", "expand_self"]
 
@@ -184,7 +184,9 @@ def _collect(module: griffe.Module, prefix: list[str], config: Config) -> dict[s
             if nested.kind is not griffe.Kind.CLASS or nested.name.startswith("_"):
                 continue
 
-            if config.excludes(nested):
+            # the renderer walks what a class defines rather than what it imports, so a class
+            # bound in two places is linked to the one page that is written for it
+            if not is_own_member(cls, nested) or config.excludes(nested):
                 continue
 
             nested_page = config.href([*base, nested.name])
