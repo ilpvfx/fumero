@@ -50,6 +50,19 @@ def test_from_pyproject_reads_the_table(pyproject: Callable[[str], Path]):
     assert config.with_meta is True
 
 
+def test_inspection_is_on_until_the_table_turns_it_off(pyproject: Callable[[str], Path]):
+    assert Config().no_inspect is False
+
+    config = Config.from_pyproject(
+        pyproject("""
+            [tool.fumero]
+            no-inspect = true
+        """)
+    )
+
+    assert config.no_inspect is True
+
+
 def test_from_pyproject_ignores_keys_naming_no_field(pyproject: Callable[[str], Path]):
     config = Config.from_pyproject(
         pyproject("""

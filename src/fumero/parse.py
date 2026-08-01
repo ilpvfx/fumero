@@ -50,9 +50,13 @@ def load_module(name: str, config: Config | None = None) -> griffe.Module:
     A package is a module that happens to hold other modules, so either will do: `example` reads
     the whole package, `example.core` reads that subtree on its own.
 
+    A module is read from its source where there is source to read. Where there is not, it is
+    imported and read as the interpreter holds it, unless [`Config.no_inspect`] forbids it.
+
     Args:
         name: An importable module path.
-        config: Supplies the docstring dialect. Defaults are used when this is `None`.
+        config: Supplies the docstring dialect, and whether a module with no source may be
+            imported to be read. Defaults are used when this is `None`.
 
     Returns:
         The module, and everything under it.
@@ -68,7 +72,11 @@ def load_module(name: str, config: Config | None = None) -> griffe.Module:
 
     config = config or Config()
     try:
-        loaded = griffe.load(name, docstring_parser=griffe.Parser(config.dialect))
+        loaded = griffe.load(
+            name,
+            docstring_parser=griffe.Parser(config.dialect),
+            allow_inspection=not config.no_inspect,
+        )
     except ImportError as error:
         raise ModuleNotFound(name) from error
 

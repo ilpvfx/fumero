@@ -276,6 +276,9 @@ Read a module and hand back griffe's view of it.
 A package is a module that happens to hold other modules, so either will do: `example` reads
 the whole package, `example.core` reads that subtree on its own.
 
+A module is read from its source where there is source to read. Where there is not, it is
+imported and read as the interpreter holds it, unless <PdxRef href="/api/fumero/Config#no_inspect">Config.no_inspect</PdxRef> forbids it.
+
 
 ```python
 module = load_module("example")
@@ -299,7 +302,8 @@ An importable module path.
 </PdxParameter>
 
 <PdxParameter name={"config"} type={"Config | None"} value={"None"} links={{"Config": "/api/fumero/Config"}}>
-Supplies the docstring dialect. Defaults are used when this is `None`.
+Supplies the docstring dialect, and whether a module with no source may be
+imported to be read. Defaults are used when this is `None`.
 </PdxParameter>
 
 </PdxParameters>

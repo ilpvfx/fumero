@@ -21,7 +21,16 @@ from ..render import generate
 
 __all__ = ["build_parser", "main"]
 
-_OVERRIDES = ("output", "base_url", "dialect", "exclude", "clean", "with_source", "with_meta")
+_OVERRIDES = (
+    "output",
+    "base_url",
+    "dialect",
+    "no_inspect",
+    "exclude",
+    "clean",
+    "with_source",
+    "with_meta",
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -57,6 +66,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=Dialect,
         choices=Dialect,
         help="docstring dialect griffe parses (default: auto)",
+    )
+    _ = parse_options.add_argument(
+        "--no-inspect",
+        action="store_true",
+        default=None,
+        help="read a compiled module from the .pyi stubs beside it rather than by importing it",
     )
     _ = parse_options.add_argument(
         "--exclude",

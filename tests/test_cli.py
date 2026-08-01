@@ -34,12 +34,19 @@ def package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
 def test_unset_flags_parse_as_none():
     arguments = build_parser().parse_args(["generate", "example"])
 
-    assert [arguments.output, arguments.clean, arguments.with_source, arguments.with_meta] == [
-        None,
-        None,
-        None,
-        None,
-    ]
+    assert [
+        arguments.output,
+        arguments.clean,
+        arguments.with_source,
+        arguments.with_meta,
+        arguments.no_inspect,
+    ] == [None, None, None, None, None]
+
+
+def test_no_inspect_turns_inspection_off():
+    arguments = build_parser().parse_args(["generate", "example", "--no-inspect"])
+
+    assert arguments.no_inspect is True
 
 
 def test_generate_writes_the_pages_and_says_where(

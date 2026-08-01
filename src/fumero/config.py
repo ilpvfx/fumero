@@ -43,6 +43,11 @@ class Config:
         base_url: URL the output directory is served at, used to build links between pages. Leave
             it empty for links relative to the site root.
         dialect: The docstring dialect griffe parses with.
+        no_inspect: Stop a module with no source from being read by importing it. A module written
+            in C is a compiled binary, and a compiled function carries no signature, so importing
+            one loses every parameter and renders the definition bare. Turn this on to read the
+            `.pyi` stubs shipped beside the binary instead, which carry the signatures in full. A
+            package shipping neither source nor stubs cannot be read at all this way.
         exclude: Glob patterns matched against each member's dotted path and its short name.
             Excluding a module drops its whole subtree.
         clean: Remove the module's previous output before rendering.
@@ -55,6 +60,7 @@ class Config:
     output: Path = Path(".")
     base_url: str = ""
     dialect: Dialect = Dialect.AUTO
+    no_inspect: bool = False
     exclude: tuple[str, ...] = ()
     clean: bool = False
     with_source: bool = False

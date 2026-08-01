@@ -73,6 +73,31 @@ A package is a module that happens to hold other modules, so both are documented
 `example` documents the whole tree; `example.core` documents that subtree alone, which is the way
 to publish parts of one package separately.
 
+## Compiled modules
+
+A module written in C has no source to read, so fumero imports it and reads what the interpreter
+holds instead. A compiled function carries no signature, and the reference comes out with nothing
+taking any parameters:
+
+```python
+def connect() -> Connection
+```
+
+Such a package usually ships `.pyi` stubs beside the binary, and those carry the signatures in
+full. `--no-inspect` reads the stubs rather than importing anything:
+
+```sh
+fumero generate example --no-inspect
+```
+
+```python
+def connect(host: str, timeout: float = 5.0) -> Connection
+```
+
+An extension package often writes each signature into the docstring as well, to make up for what
+the binary lost, which is why an inspected module can repeat its signatures as prose below them.
+Reading the stubs removes that too.
+
 ## Where the pages go
 
 `--output` is the directory the tree is written into. `--base-url` is the URL that directory is

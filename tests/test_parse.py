@@ -46,6 +46,23 @@ def test_load_module_reads_a_package_on_the_path(tmp_path: Path, monkeypatch: py
     assert module.docstring.value == "An example package."
 
 
+def test_load_module_hands_inspection_to_griffe(monkeypatch: pytest.MonkeyPatch):
+    captured: dict[str, object] = {}
+
+    def load(name: str, **options: object) -> griffe.Module:
+        captured.update(options)
+
+        return griffe.Module(name)
+
+    monkeypatch.setattr(griffe, "load", load)
+
+    _ = load_module("example")
+    assert captured["allow_inspection"] is True
+
+    _ = load_module("example", Config(no_inspect=True))
+    assert captured["allow_inspection"] is False
+
+
 def test_load_module_reports_a_module_it_cannot_import():
     with pytest.raises(ModuleNotFound) as raised:
         _ = load_module("example_that_is_not_installed")

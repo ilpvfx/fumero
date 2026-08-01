@@ -54,6 +54,38 @@ fumero generate example --base-url /docs/api
 The docstring dialect griffe parses: `auto`, `google`, `numpy` or `sphinx`. `auto` infers the
 dialect from the shape of each docstring.
 
+### no-inspect
+
+Stops a module with no source from being read by importing it. Off by default, and importing is
+what lets a compiled module be documented at all.
+
+A compiled function carries no signature, so a module read this way documents every function as
+taking nothing:
+
+```python
+def connect() -> Connection
+```
+
+An extension module usually ships `.pyi` stubs beside the binary, and those carry the signatures in
+full. `--no-inspect` reads them instead:
+
+```sh
+fumero generate example --no-inspect
+```
+
+```python
+def connect(host: str, timeout: float = 5.0) -> Connection
+```
+
+The flag is the key:
+
+```toml
+no-inspect = true
+```
+
+Turn it off only for a package that ships stubs. One shipping neither source nor stubs cannot be
+read this way at all, and the run ends with the module reported as unloadable.
+
 ### exclude
 
 Glob patterns matched against each member's dotted path and against its short name:
