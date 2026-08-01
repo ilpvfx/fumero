@@ -118,6 +118,43 @@ def test_render_leaves_private_members_out(render: Callable[..., tuple[Path, Res
     assert "_reset" not in client
 
 
+def test_render_states_each_page_kind_for_the_sidebar(render: Callable[..., tuple[Path, Result]]):
+    output, _ = render()
+
+    module = (output / "example" / "index.mdx").read_text()
+    leaf_module = (output / "example" / "core.mdx").read_text()
+    klass = (output / "example" / "Failure.mdx").read_text()
+
+    # under one key, so letting it through the frontmatter schema is a single edit that keeps
+    # working as fumero carries more into the page tree
+    assert "_fumero: { kind: module }" in module
+    assert "_fumero: { kind: module }" in leaf_module
+    assert "_fumero: { kind: class }" in klass
+
+    # the kind is the label, so no page also spends an icon saying the same thing
+    assert "icon:" not in module
+    assert "icon:" not in klass
+
+
+def test_render_tints_a_member_kind_in_the_table_of_contents(
+    render: Callable[..., tuple[Path, Result]],
+):
+    output, _ = render()
+
+    core = (output / "example" / "core.mdx").read_text()
+    client = (output / "example" / "Client" / "index.mdx").read_text()
+
+    # one hue per question a reader has, so a method and a function share theirs
+    assert ">func<" in core
+    assert ">method<" in client
+    assert "text-blue-600 dark:text-blue-400" in core
+    assert "text-blue-600 dark:text-blue-400" in client
+
+    # and an attribute, which is not a callable, does not
+    assert ">attr<" in core
+    assert "text-red-600 dark:text-red-400" in core
+
+
 def test_render_reports_a_link_that_matched_nothing(render: Callable[..., tuple[Path, Result]]):
     output, result = render()
 

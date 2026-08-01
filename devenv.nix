@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   packages = [
@@ -29,7 +29,7 @@
     fumero-init = {
       enable = true;
       name = "fumero init";
-      entry = "uv run fumero init docs/src/components/mdx/pdx.tsx";
+      entry = "uv run fumero init ${config.devenv.root}/docs/src/components/mdx";
       files = "^src/fumero/assets/.*\\.tsx$";
       pass_filenames = false;
     };

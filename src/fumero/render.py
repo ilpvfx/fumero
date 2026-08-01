@@ -310,7 +310,8 @@ class Renderer:
         """Write the `meta.json` that fixes the order of the pages in one directory.
 
         Submodules come before classes, since a submodule opens a subtree and a class documents a
-        single symbol. Their icons say which is which, so neither group needs a heading over it.
+        single symbol. Each page says which of the two it is, in the `_fumero` its frontmatter carries
+        and the label the plugin renders from it, so neither group needs a heading over it.
         """
 
         if not self.config.with_meta:

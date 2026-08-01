@@ -47,7 +47,7 @@ a page reference a symbol whose own page is written later.
 """
 
 from . import error, model
-from .component import component_source, init
+from .component import component_source, init, plugin_source
 from .config import Config, Dialect
 from .link import LinkTable
 from .mdx import encode_text
@@ -68,4 +68,5 @@ __all__ = [
     "init",
     "load_module",
     "model",
+    "plugin_source",
 ]

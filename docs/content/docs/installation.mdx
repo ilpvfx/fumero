@@ -18,11 +18,20 @@ for types. They are installed as source rather than as a package, so a docs app 
 and no release overwrites local changes.
 
 ```sh
-fumero init src/components/mdx/pdx.tsx
+fumero init src/components/mdx
 ```
 
-The path is wherever the app keeps its MDX components. Fumero creates any missing directories and
-overwrites the file at that path.
+```txt
+wrote src/components/mdx/pdx-components.tsx
+wrote src/components/mdx/pdx-plugin.tsx
+```
+
+The argument is a directory, wherever the app keeps its MDX components. Fumero creates it if it is
+missing and overwrites the two files it owns inside it.
+
+Two files go out, because they are registered in different places. `pdx-components.tsx` renders the
+pages. `pdx-plugin.tsx` is a Fumadocs loader plugin, which works on the page tree the sidebar is
+built from rather than on any page, and labels the entries that lead to a module.
 
 ## Registering them
 
@@ -31,7 +40,7 @@ Fumadocs renders MDX with the components it is given, so the set has to be regis
 ```tsx title="src/mdx-components.tsx"
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
-import * as Pdx from '@/components/mdx/pdx';
+import * as Pdx from '@/components/mdx/pdx-components';
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -43,3 +52,56 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
 ```
 
 Without the registration, generated pages render their tags as literal text.
+
+## The sidebar labels
+
+A generated page says what it is in its frontmatter, `_fumero: { kind: module }`, and the plugin
+turns that into a label on the sidebar entry leading to it: `module` in green, since a module is where
+the tree opens, and `class` dimmed beneath the name. It goes on the loader, beside whatever plugins
+are already there:
+
+```ts title="src/lib/source.ts"
+import { docs } from '@/.source/server';
+import { loader } from 'fumadocs-core/source';
+import { fumeroPlugin } from '@/components/mdx/pdx-plugin';
+
+export const source = loader({
+  plugins: [fumeroPlugin()],
+  baseUrl: '/docs',
+  source: docs.toFumadocsSource(),
+});
+```
+
+Fumadocs keeps only the frontmatter its schema names, so let `_fumero` through:
+
+```ts title="source.config.ts"
+import { defineDocs } from 'fumadocs-mdx/config';
+import { pageSchema } from 'fumadocs-core/source/schema';
+
+export const docs = defineDocs({
+  docs: {
+    schema: pageSchema.loose(),
+  },
+});
+```
+
+Or name the key, to have it typed:
+
+```ts title="source.config.ts"
+schema: pageSchema.extend({ _fumero: z.record(z.string(), z.custom()).optional() }),
+```
+
+Everything fumero carries into the page tree arrives under `_fumero`, so this is the only schema edit
+there will be. Without it the pages render as they otherwise would, and the sidebar says nothing
+about kinds.
+
+The words and their tints are the `KINDS` table at the top of `pdx-plugin.tsx`, and a kind left out
+of it goes unlabelled.
+
+`renderLabel` words a label differently or drops one. The row places whatever it returns:
+
+```tsx title="src/lib/source.ts"
+fumeroPlugin({
+  renderLabel: (kind) => (kind === 'module' ? <span className="font-mono text-xs">mod</span> : undefined),
+});
+```

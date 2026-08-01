@@ -43,9 +43,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fumero", description="Generate .mdx from Python API")
     commands = parser.add_subparsers(title="commands", dest="command", required=True)
 
-    initialiser = commands.add_parser("init", help="write the component file that renders the .mdx")
+    initialiser = commands.add_parser(
+        "init", help="write the components that render the .mdx, and the loader plugin beside them"
+    )
     _ = initialiser.add_argument(
-        "path", type=Path, help="path for the component file (e.g. src/components/mdx/pdx.tsx)"
+        "directory", type=Path, help="directory to write them into (e.g. src/components/mdx)"
     )
 
     generator = commands.add_parser("generate", help="generate .mdx for a python module")
@@ -114,7 +116,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if arguments.command == "init":
-            print(f"wrote {init(cast(Path, arguments.path))}")
+            for written in init(cast(Path, arguments.directory)):
+                print(f"wrote {written}")
 
             return 0
 

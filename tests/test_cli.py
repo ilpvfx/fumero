@@ -83,9 +83,15 @@ def test_generate_reports_a_module_it_cannot_import(capsys: pytest.CaptureFixtur
     assert "error: could not load 'example_that_is_not_installed'" in capsys.readouterr().err
 
 
-def test_init_writes_the_components(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
-    destination = tmp_path / "src" / "components" / "mdx" / "pdx.tsx"
+def test_init_writes_the_components_and_the_plugin(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    directory = tmp_path / "src" / "components" / "mdx"
 
-    assert main(["init", str(destination)]) == 0
-    assert "export function PdxRef" in destination.read_text()
-    assert f"wrote {destination}" in capsys.readouterr().out
+    assert main(["init", str(directory)]) == 0
+    assert "export function PdxRef" in (directory / "pdx-components.tsx").read_text()
+    assert "export function fumeroPlugin" in (directory / "pdx-plugin.tsx").read_text()
+
+    written = capsys.readouterr().out
+    assert f"wrote {directory / 'pdx-components.tsx'}" in written
+    assert f"wrote {directory / 'pdx-plugin.tsx'}" in written

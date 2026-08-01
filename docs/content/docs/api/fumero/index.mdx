@@ -1,6 +1,6 @@
 ---
 title: fumero
-icon: Package
+_fumero: { kind: module }
 ---
 
 
@@ -95,7 +95,7 @@ a page reference a symbol whose own page is written later.
 
 <div className="absolute opacity-0 pointer-events-none">
 
-### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> component\_source [#component\_source]
+### <span className="not-prose font-mono text-[11px] text-blue-600 dark:text-blue-400">func</span> component\_source [#component\_source]
 
 </div>
 
@@ -120,7 +120,7 @@ The `.tsx` source, exactly as it ships.
 
 <div className="absolute opacity-0 pointer-events-none">
 
-### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> encode\_text [#encode\_text]
+### <span className="not-prose font-mono text-[11px] text-blue-600 dark:text-blue-400">func</span> encode\_text [#encode\_text]
 
 </div>
 
@@ -179,7 +179,7 @@ MDX ready to be written into a page.
 
 <div className="absolute opacity-0 pointer-events-none">
 
-### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> generate [#generate]
+### <span className="not-prose font-mono text-[11px] text-blue-600 dark:text-blue-400">func</span> generate [#generate]
 
 </div>
 
@@ -228,19 +228,24 @@ The files written, and any links that did not resolve.
 
 <div className="absolute opacity-0 pointer-events-none">
 
-### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> init [#init]
+### <span className="not-prose font-mono text-[11px] text-blue-600 dark:text-blue-400">func</span> init [#init]
 
 </div>
 
-<PdxFunction name={"init"} definition={"def init(destination: Path | str) -> Path"}>
+<PdxFunction name={"init"} definition={"def init(directory: Path | str) -> list[Path]"}>
 
-Write the components to `destination`, creating parent directories as needed.
+Write both files into `directory`, creating it and its parents as needed.
 
-Overwrites whatever is already there, so point it at a path your docs app owns.
+The names are fumero's to choose, since the pages import the components by name and the two
+files are installed together and edited together.
+
+Overwrites whatever is already there, so point it at a directory your docs app owns.
 
 
 ```python
-init("src/components/mdx/pdx.tsx")
+init("src/components/mdx")
+# [PosixPath('src/components/mdx/pdx-components.tsx'),
+#  PosixPath('src/components/mdx/pdx-plugin.tsx')]
 ```
 
 
@@ -249,15 +254,15 @@ init("src/components/mdx/pdx.tsx")
 
 <PdxParameters>
 
-<PdxParameter name={"destination"} type={"Path | str"}>
-Where to write the `.tsx` file.
+<PdxParameter name={"directory"} type={"Path | str"}>
+Where the files go, usually wherever the app keeps its MDX components.
 </PdxParameter>
 
 </PdxParameters>
 
 
-<PdxReturns type={"Path"}>
-The path written to.
+<PdxReturns type={"list[Path]"}>
+The paths written to, components first.
 </PdxReturns>
 
 
@@ -265,7 +270,7 @@ The path written to.
 
 <div className="absolute opacity-0 pointer-events-none">
 
-### <span className="not-prose font-mono text-[11px] text-fd-muted-foreground">func</span> load\_module [#load\_module]
+### <span className="not-prose font-mono text-[11px] text-blue-600 dark:text-blue-400">func</span> load\_module [#load\_module]
 
 </div>
 
@@ -311,6 +316,28 @@ imported to be read. Defaults are used when this is `None`.
 
 <PdxReturns type={"griffe.Module"}>
 The module, and everything under it.
+</PdxReturns>
+
+
+</PdxFunction>
+
+<div className="absolute opacity-0 pointer-events-none">
+
+### <span className="not-prose font-mono text-[11px] text-blue-600 dark:text-blue-400">func</span> plugin\_source [#plugin\_source]
+
+</div>
+
+<PdxFunction name={"plugin_source"} definition={"def plugin_source() -> str"}>
+
+The loader plugin's source text.
+
+
+
+
+
+
+<PdxReturns type={"str"}>
+The `.tsx` source, exactly as it ships.
 </PdxReturns>
 
 

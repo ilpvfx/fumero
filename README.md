@@ -22,7 +22,7 @@ uv add fumero --dev  # or pip install fumero
 Install the components into the docs app that will render the output:
 
 ```sh
-fumero init src/components/mdx/pdx.tsx
+fumero init src/components/mdx
 ```
 
 Register them once, so every generated page knows how to render itself:
@@ -30,11 +30,33 @@ Register them once, so every generated page knows how to render itself:
 ```tsx
 // src/mdx-components.tsx
 import defaultMdxComponents from 'fumadocs-ui/mdx';
-import * as Pdx from '@/components/mdx/pdx';
+import * as Pdx from '@/components/mdx/pdx-components';
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return { ...defaultMdxComponents, ...Pdx, ...components };
 }
+```
+
+The loader plugin that came with them labels each sidebar entry with the kind of page it leads to,
+`module` or `class`:
+
+```ts
+// src/lib/source.ts
+import { fumeroPlugin } from '@/components/mdx/pdx-plugin';
+
+export const source = loader({
+  plugins: [fumeroPlugin()],
+  baseUrl: '/docs',
+  source: docs.toFumadocsSource(),
+});
+```
+
+A generated page carries its kind under `_fumero`, and Fumadocs keeps only the frontmatter its schema
+names, so let the rest through:
+
+```ts
+// source.config.ts
+schema: pageSchema.loose(),
 ```
 
 Then document a module:

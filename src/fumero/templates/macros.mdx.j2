@@ -2,10 +2,22 @@
    build the `toc` export, and the MDX component map is not in scope there, so a component inside
    a heading is a ReferenceError.
 
-   The kind, for the sidebar. A plain word: the page states a member's kind in its card, and this
-   is the only place the kinds interleave, so it needs to be readable, not decorated. #}
+   The kind, for the table of contents. This is the one place the kinds interleave, and the list is
+   read by running an eye down it rather than word by word, so the kind is tinted: a colour is seen
+   before it is read, and it groups the callables of a class without reordering anything.
+
+   One hue per question a reader has. `func` and `method` are the same colour because they are the
+   same question, asked on a module page and on a class page.
+
+   Both tints are `-600` on light and `-400` on dark, which is how fumadocs tints its own labels, so
+   they carry the same weight as the rest of the site rather than announcing themselves. #}
+{% set kind_colours = {
+     "func": "text-blue-600 dark:text-blue-400",
+     "method": "text-blue-600 dark:text-blue-400",
+     "attr": "text-red-600 dark:text-red-400",
+   } %}
 {% macro badge(kind) -%}
-<span className="not-prose font-mono text-[11px] text-fd-muted-foreground">{{ kind }}</span>
+<span className="not-prose font-mono text-[11px] {{ kind_colours.get(kind, 'text-fd-muted-foreground') }}">{{ kind }}</span>
 {%- endmacro %}
 
 {# A visually-hidden heading whose only job is to add a table-of-contents entry (with its badge)
