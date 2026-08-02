@@ -61,7 +61,7 @@ schema: pageSchema.loose(),
 Then document a module:
 
 ```sh
-fumero generate example --output content/docs/api --base-url /docs/api --with-meta
+fumero generate example --output content/docs/api --base-url /api --with-meta
 ```
 
 ## Configuration
@@ -72,7 +72,7 @@ not change between runs belong in `pyproject.toml`:
 ```toml
 [tool.fumero]
 output = "content/docs/api"
-base-url = "/docs/api"
+base-url = "/api"
 exclude = ["example.internal", "*.tests"]
 with-meta = true
 ```
@@ -96,6 +96,8 @@ Python, uv, and everything else you need.
 # Enter the dev shell - this installs all dependencies automatically
 devenv shell
 ```
+
+Once you are in the shell, lint, type check, and test with:
 
 ```sh
 uv run ruff check
