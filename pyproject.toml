@@ -4,12 +4,13 @@ version = "0.0.1"
 description = "Generate a Fumadocs API reference from a Python module."
 readme = "README.md"
 authors = [
-  { name = "Ludvig Holmkvist", email = "ludvig.holmkvist@ilpvfx.com" }
+  { name = "Fredrik Brännbacka", email = "fredrik.brannbacka@ilpvfx.com" },
+  { name = "Ludvig Holmkvist", email = "ludvig.holmkvist@ilpvfx.com" },
 ]
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
-keywords = ["documentation", "mdx", "api-reference"]
+keywords = ["api-reference", "documentation", "mdx"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
