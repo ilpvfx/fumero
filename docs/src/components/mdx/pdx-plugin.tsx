@@ -27,19 +27,18 @@
  * Everything fumero carries into the page tree arrives under that one key, so this is the only schema
  * edit there will be.
  *
- * All it does today is label each sidebar entry with the kind of page it leads to. Without it the
- * pages render as they otherwise would, and the sidebar says nothing about kinds.
+ * All it does today is label the sidebar entries that lead to a module. Without it the pages render
+ * as they otherwise would, and the sidebar says nothing about kinds.
  *
  * Design
  * ------
- * The label is the kind in lower case, with no box around it. Lower case, because `module` and
- * `class` are the words Python uses.
+ * The label is the kind in lower case, with no box around it. Lower case, because `module` is the
+ * word Python uses.
  *
- * Only the modules take a colour. A module is a branch point, and there are a few of them among many
- * classes, so a green word marks where the tree opens and agrees with the indentation. Colouring the
+ * Only the modules are labelled. A module is a branch point, and there are a few of them among many
+ * classes, so a green word marks where the tree opens and agrees with the indentation. Labelling the
  * classes too puts the same word at the same place on every row, in a column that reads across the
- * indentation rather than with it, and the tree goes with it. The class label recedes instead, dim
- * enough to sit under the name it belongs to.
+ * indentation rather than with it, and the tree goes with it.
  *
  * Alignment
  * ---------
@@ -67,13 +66,13 @@ import type { ReactNode } from 'react';
 
 /**
  * What to call each kind of page, and how the label is set apart. A kind absent from here goes
- * unlabelled.
+ * unlabelled, so a line is all it takes to label the class pages as well: their frontmatter already
+ * carries `kind: class`.
  *
- * The module tint is `-600` on light against `-400` on dark, as Fumadocs tints its own labels.
+ * The tint is `-600` on light against `-400` on dark, as Fumadocs tints its own labels.
  */
 const KINDS: Record<string, { label: string; className: string } | undefined> = {
   module: { label: 'module', className: 'text-green-600 dark:text-green-400' },
-  class: { label: 'class', className: 'text-fd-muted-foreground/60' },
 };
 
 /** Outside the sidebar the row is not a row, so it stops being one and its box goes with it. */

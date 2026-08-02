@@ -56,9 +56,9 @@ Without the registration, generated pages render their tags as literal text.
 ## The sidebar labels
 
 A generated page says what it is in its frontmatter, `_fumero: { kind: module }`, and the plugin
-turns that into a label on the sidebar entry leading to it: `module` in green, since a module is where
-the tree opens, and `class` dimmed beneath the name. It goes on the loader, beside whatever plugins
-are already there:
+turns that into a label on the sidebar entry leading to it. Only the modules are labelled, in green,
+since a module is where the tree opens. It goes on the loader, beside whatever plugins are already
+there:
 
 ```ts title="src/lib/source.ts"
 import { docs } from '@/.source/server';
@@ -96,7 +96,8 @@ there will be. Without it the pages render as they otherwise would, and the side
 about kinds.
 
 The words and their tints are the `KINDS` table at the top of `pdx-plugin.tsx`, and a kind left out
-of it goes unlabelled.
+of it goes unlabelled. Adding `class` there labels the class pages too, since their frontmatter
+already carries `kind: class`.
 
 `renderLabel` words a label differently or drops one. The row places whatever it returns:
 

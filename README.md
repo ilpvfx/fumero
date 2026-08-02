@@ -37,8 +37,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
 }
 ```
 
-The loader plugin that came with them labels each sidebar entry with the kind of page it leads to,
-`module` or `class`:
+The loader plugin that came with them labels the sidebar entries that lead to a module:
 
 ```ts
 // src/lib/source.ts
