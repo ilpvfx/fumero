@@ -59,7 +59,8 @@
  *
  * The page tree names the breadcrumb and the previous/next links too, and a label pushed to the end
  * of a row means nothing in either, so the row folds away to `display: contents` outside the
- * sidebar and takes the label with it.
+ * sidebar and takes the label with it. A row that folds away must own every property it sets, which
+ * is why the layout below is utilities rather than a class borrowed from Fumadocs.
  */
 import type { LoaderPlugin } from 'fumadocs-core/source';
 import type { ReactNode } from 'react';
@@ -75,14 +76,19 @@ const KINDS: Record<string, { label: string; className: string } | undefined> = 
   class: { label: 'class', className: 'text-fd-muted-foreground/60' },
 };
 
-/** Outside the sidebar the row is not a row, so it stops being one. */
+/** Outside the sidebar the row is not a row, so it stops being one and its box goes with it. */
 const SIDEBAR_ONLY = 'not-in-[#nd-sidebar]:contents';
 
 /**
  * The name and its label. `pe-6` is the column a folder's chevron sits in, held open on the rows
  * that have no chevron to put there, and handed back by rows that do.
+ *
+ * Laid out with utilities rather than with Fumadocs' own `fd-page-tree-item-name`, which sets the
+ * same three properties. That class and `SIDEBAR_ONLY` are both one class specific, so the later of
+ * the two in the stylesheet wins, and it is theirs: the row would keep its box everywhere and hand
+ * the breadcrumb and the previous/next links a 24px hole where the label would have been.
  */
-const ROW = `fd-page-tree-item-name pe-6 [&:has(+[data-icon])]:pe-0 ${SIDEBAR_ONLY}`;
+const ROW = `inline-flex w-full items-center gap-1 pe-6 [&:has(+[data-icon])]:pe-0 ${SIDEBAR_ONLY}`;
 
 /** Takes the width the label does not, so a name too long for the sidebar is cut rather than it. */
 const NAME = `flex-1 truncate ${SIDEBAR_ONLY}`;
