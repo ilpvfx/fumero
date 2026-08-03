@@ -8,7 +8,7 @@ _fumero: { kind: class }
    this heading and once for the field. A python identifier cannot contain a hyphen, so a
    `section-` prefix is guaranteed to stay out of the members' way. #}
 
-{% import "macros.mdx.j2" as macros %}
+{% import "macros.mdx.jinja" as macros %}
 
 {{ class.docstring.description | encode }}
 

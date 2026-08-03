@@ -276,7 +276,7 @@ class Renderer:
         # a module owns a directory only when something goes inside it
         holds_pages = bool(classes) or bool(submodules)
         path = root / name / "index.mdx" if holds_pages else root / f"{name}.mdx"
-        self._render_template("module.mdx.j2", {"module": page}, path)
+        self._render_template("module.mdx.jinja", {"module": page}, path)
 
         self._write_meta(
             root / name,
@@ -290,7 +290,7 @@ class Renderer:
     def _render_class(self, parsed: Class, path: Path) -> None:
         self._scope = parsed.name
         try:
-            self._render_template("class.mdx.j2", {"class": parsed}, path)
+            self._render_template("class.mdx.jinja", {"class": parsed}, path)
         finally:
             self._scope = None
 
