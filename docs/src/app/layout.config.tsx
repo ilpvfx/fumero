@@ -1,5 +1,6 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from 'next/image';
+import { basePath } from '@/lib/base-path';
 import { version } from '@/lib/version';
 
 /**
@@ -14,15 +15,15 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <>
         <Image
-          src="/ilp-logo-black.svg"
-          alt="ilp"
+          src={`${basePath}/ilp-logo-black.svg`}
+          alt=""
           width="24"
           height="24"
           className="mr-2 dark:hidden"
         />
         <Image
-          src="/ilp-logo.svg"
-          alt="ilp"
+          src={`${basePath}/ilp-logo.svg`}
+          alt=""
           width="24"
           height="24"
           className="mr-2 hidden dark:inline"
