@@ -1,4 +1,4 @@
-{ config, ... }:
+{ pkgs, config, ... }:
 
 {
   languages = {
@@ -8,6 +8,7 @@
       npm.install.enable = true;
 
       directory = "./docs";
+      package = pkgs.nodejs_22;
     };
   };
 
