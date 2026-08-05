@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - _
+      - main
 
 # allow a later push to the same ref to cancel the jobs still running
 concurrency:

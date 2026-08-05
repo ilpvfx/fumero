@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - _
+      - main
   pull_request:
 
 # allow a later push to the same pull request to cancel the jobs still running
