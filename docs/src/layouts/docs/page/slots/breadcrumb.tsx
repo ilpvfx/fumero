@@ -1,3 +1,10 @@
+/*
+ * Copied from fumadocs-ui (src/layouts/docs/page/slots/breadcrumb.tsx) through the Fumadocs CLI's
+ * eject flow, so the breadcrumb could be restyled for this site.
+ *
+ * MIT License. Copyright (c) 2023 Fuma. The full permission notice is in THIRD-PARTY-NOTICES.md at
+ * the root of this repository.
+ */
 'use client';
 
 import { useTreePath, useTreeContext } from 'fumadocs-ui/contexts/tree';
