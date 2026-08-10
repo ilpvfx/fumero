@@ -29,7 +29,7 @@ dependencies = [
 [project.urls]
 Documentation = "https://ilpvfx.github.io/fumero/"
 Repository = "https://github.com/ilpvfx/fumero"
-Changelog = "https://github.com/ilpvfx/fumero/blob/main/CHANGELOG.md"
+Changelog = "https://ilpvfx.github.io/fumero/changelog/"
 
 [dependency-groups]
 dev = [
