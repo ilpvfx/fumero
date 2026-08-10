@@ -64,6 +64,11 @@ Then document a module:
 fumero generate example --output content/docs/api --base-url /api --with-meta
 ```
 
+A module is read from its source, not by importing it, so documenting a package does not run it.
+The exception is a module with no source to read, such as a C extension: that one is imported, and
+importing it runs whatever its module-level code does. Pass `--no-inspect` to read the `.pyi` stubs
+beside the binary instead, and nothing is imported at all.
+
 ## Configuration
 
 Every option is a flag on `fumero generate` and a key in a `[tool.fumero]` table. Options that do

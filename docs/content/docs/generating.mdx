@@ -98,6 +98,14 @@ An extension package often writes each signature into the docstring as well, to 
 the binary lost, which is why an inspected module can repeat its signatures as prose below them.
 Reading the stubs removes that too.
 
+<Callout title="Inspecting a module runs it">
+  Reading source does not execute anything, so documenting a package written in Python runs none of
+  it. Inspecting is the exception: a module with no source is imported, and importing it runs its
+  module-level code with whatever the interpreter can reach. That is the same trust you extend by
+  installing the package, but it is worth knowing before pointing fumero at something you have not
+  read. `--no-inspect` removes it.
+</Callout>
+
 ## Where the pages go
 
 `--output` is the directory the tree is written into. `--base-url` is the URL that directory is

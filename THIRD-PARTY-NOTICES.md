@@ -4,7 +4,7 @@ Fumero is distributed under the MIT License; see [LICENSE](LICENSE).
 
 This file covers third-party code that is **copied into or derived from** this repository, and
 whose license asks for its notice to travel with those copies. It does not list fumero's runtime
-or development dependencies — those are installed from their own distributions, which carry their
+or development dependencies. Those are installed from their own distributions, which carry their
 own license files, and are named in `pyproject.toml` and `docs/package.json`.
 
 Fumero is an independent project. It is not affiliated with, sponsored by, or endorsed by

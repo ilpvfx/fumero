@@ -126,6 +126,11 @@ class Renderer:
         self._result: Result = Result()
         self._scope: str | None = None
         self._page: Path = Path()
+        # autoescape stays off, and has to. these templates write MDX rather than HTML, so the
+        # angle brackets in them are components the docs app compiles, not text to be escaped.
+        # turning it on would render every one of them literally. what does need escaping is
+        # escaped where it is built, by `_encode` and the filters beside it, which know whether
+        # they are writing prose, a JSX attribute or a fence.
         self._environment: jinja2.Environment = jinja2.Environment(
             loader=jinja2.FileSystemLoader(_TEMPLATE_DIR)
         )
