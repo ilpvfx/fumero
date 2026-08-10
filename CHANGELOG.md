@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.1.0...fumero-v0.2.0) (2026-08-10)
+
+
+### Features
+
+* --version flag ([#9](https://github.com/ilpvfx/fumero/issues/9)) ([42e8275](https://github.com/ilpvfx/fumero/commit/42e8275f4d2ed37319c2b6f82ab24241006d5522))
+
+
+### Documentation
+
+* fix the nav logo on github pages ([#2](https://github.com/ilpvfx/fumero/issues/2)) ([8b838c5](https://github.com/ilpvfx/fumero/commit/8b838c59ff2c8b157f0ab0807195900e853e5e49))
+
 ## [0.1.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.0.1...fumero-v0.1.0) (2026-08-05)
 
 
