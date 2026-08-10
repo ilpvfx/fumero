@@ -11,6 +11,7 @@ of overwriting a configured value with an argparse default.
 import argparse
 import sys
 from collections.abc import Sequence
+from importlib.metadata import version
 from pathlib import Path
 from typing import cast
 
@@ -41,6 +42,16 @@ def build_parser() -> argparse.ArgumentParser:
     """
 
     parser = argparse.ArgumentParser(prog="fumero", description="Generate .mdx from Python API")
+    # read from the installed distribution rather than restated here, so the number cannot drift
+    # from the one that was released
+    _ = parser.add_argument(
+        "--version",
+        "-v",
+        action="version",
+        version=f"%(prog)s {version('fumero')}",
+        help="print the installed version and exit",
+    )
+
     commands = parser.add_subparsers(title="commands", dest="command", required=True)
 
     initialiser = commands.add_parser(

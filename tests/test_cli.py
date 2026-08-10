@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from textwrap import dedent
 
@@ -29,6 +30,24 @@ def package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     monkeypatch.chdir(tmp_path)
 
     return "example"
+
+
+@pytest.mark.parametrize("flag", ["--version", "-v"])
+def test_version_prints_what_is_installed_and_stops(flag: str, capsys: pytest.CaptureFixture[str]):
+    with pytest.raises(SystemExit) as exit:
+        _ = main([flag])
+
+    assert exit.value.code == 0
+    assert re.fullmatch(r"fumero \d+\.\d+\.\d+.*", capsys.readouterr().out.strip())
+
+
+def test_version_needs_no_command():
+    """The subcommand is required, so the flag has to be handled before that is enforced."""
+
+    with pytest.raises(SystemExit) as exit:
+        _ = build_parser().parse_args(["--version"])
+
+    assert exit.value.code == 0
 
 
 def test_unset_flags_parse_as_none():
