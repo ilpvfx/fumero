@@ -58,5 +58,3 @@
 * basic readme ([4b64c1a](https://github.com/ilpvfx/fumero/commit/4b64c1abfb7859cb482cd3b24b579a5b19388594))
 * compile changelog at prebuild ([d7e1ed3](https://github.com/ilpvfx/fumero/commit/d7e1ed39c664f4eded861e4133b6da47a4af5a7f))
 * introduction, installation instructions and guides ([c43b50c](https://github.com/ilpvfx/fumero/commit/c43b50ca560304bdf1eeda8dcd181244ecaa783c))
-
-## Changelog
