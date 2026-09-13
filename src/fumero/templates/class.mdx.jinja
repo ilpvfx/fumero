@@ -26,7 +26,7 @@ _fumero: { kind: class }
 {% if class.classes %}
 ## Classes [#section-classes]
 
-<Cards>
+<Cards className="{{ macros.card_grid }}">
 {% for nested in class.classes %}
 <Card {{ jsx_props(title=nested.name, href="./" ~ nested.name ~ "/") }} />
 {% endfor %}
