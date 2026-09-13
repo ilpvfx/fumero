@@ -6,7 +6,7 @@ from typing import cast
 import griffe
 import pytest
 
-from fumero.config import Config
+from fumero.config import Config, Dialect
 from fumero.error import ModuleNotFound
 from fumero.parse import (
     load_module,
@@ -61,6 +61,47 @@ def test_load_module_hands_inspection_to_griffe(monkeypatch: pytest.MonkeyPatch)
 
     _ = load_module("example", Config(no_inspect=True))
     assert captured["allow_inspection"] is False
+
+
+def test_load_module_parses_a_docstring_that_opens_with_a_section(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """A generated client writes no summary, so `Attributes:` lands on the first line.
+
+    griffe's style heuristics look for a section header preceded by a newline, which a docstring
+    that opens with one does not have. Left undetected, the whole docstring renders as prose.
+    """
+
+    package = tmp_path / "example"
+    package.mkdir()
+    _ = (package / "__init__.py").write_text(
+        dedent(
+            '''
+            """An example package."""
+
+
+            class Request:
+                """
+                Attributes:
+                    collection_type_id (int):
+                    name (str):
+                """
+
+                collection_type_id: int
+                name: str
+            '''
+        )
+    )
+    monkeypatch.syspath_prepend(tmp_path)
+
+    module = load_module("example", Config(dialect=Dialect.AUTO))
+    parsed = parse_class(cast(griffe.Class, module.members["Request"]))
+
+    assert parsed.docstring.description is None
+    assert [(entry.name, entry.annotation) for entry in parsed.attributes] == [
+        ("collection_type_id", "int"),
+        ("name", "str"),
+    ]
 
 
 def test_load_module_reports_a_module_it_cannot_import():
