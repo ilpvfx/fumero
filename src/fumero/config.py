@@ -96,7 +96,9 @@ class Config:
         file = Path(path)
         table: dict[str, Any] = {}
         if file.is_file():
-            loaded = tomllib.loads(file.read_text()).get("tool", {}).get("fumero", {})
+            loaded = (
+                tomllib.loads(file.read_text(encoding="utf-8")).get("tool", {}).get("fumero", {})
+            )
             table = cast(dict[str, Any], loaded)
 
         names = {field.name for field in fields(cls)}
