@@ -28,7 +28,7 @@ def component_source() -> str:
         The `.tsx` source, exactly as it ships.
     """
 
-    return (_ASSETS / "pdx-components.tsx").read_text()
+    return (_ASSETS / "pdx-components.tsx").read_text(encoding="utf-8")
 
 
 def plugin_source() -> str:
@@ -38,7 +38,7 @@ def plugin_source() -> str:
         The `.tsx` source, exactly as it ships.
     """
 
-    return (_ASSETS / "pdx-plugin.tsx").read_text()
+    return (_ASSETS / "pdx-plugin.tsx").read_text(encoding="utf-8")
 
 
 def init(directory: Path | str) -> list[Path]:
@@ -72,7 +72,7 @@ def init(directory: Path | str) -> list[Path]:
         ("pdx-plugin.tsx", plugin_source()),
     ):
         path = destination / name
-        _ = path.write_text(source)
+        _ = path.write_text(source, encoding="utf-8", newline="\n")
         written.append(path)
 
     return written

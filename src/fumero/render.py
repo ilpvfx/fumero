@@ -306,7 +306,7 @@ class Renderer:
         )
 
         path.parent.mkdir(parents=True, exist_ok=True)
-        _ = path.write_text(rendered)
+        _ = path.write_text(rendered, encoding="utf-8", newline="\n")
         self._result.pages.append(path)
 
     def _write_meta(
@@ -327,4 +327,6 @@ class Renderer:
             return
 
         # fumadocs includes the index automatically, so it is never listed here
-        _ = (directory / "meta.json").write_text(json.dumps({"pages": pages}, indent=2) + "\n")
+        _ = (directory / "meta.json").write_text(
+            json.dumps({"pages": pages}, indent=2) + "\n", encoding="utf-8", newline="\n"
+        )
