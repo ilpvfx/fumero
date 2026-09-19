@@ -72,7 +72,7 @@ import type { ReactNode } from 'react';
  * The tint is `-600` on light against `-400` on dark, as Fumadocs tints its own labels.
  */
 const KINDS: Record<string, { label: string; className: string } | undefined> = {
-  module: { label: 'module', className: 'text-green-600 dark:text-green-400' },
+  module: { label: 'MODULE', className: 'text-green-600 dark:text-green-400' },
 };
 
 /** Outside the sidebar the row is not a row, so it stops being one and its box goes with it. */
