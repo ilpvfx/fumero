@@ -111,10 +111,11 @@ def test_encode_text_expands_a_self_path(links: LinkTable, text: str, expected: 
     [
         pytest.param("One line.\n\nAnd more.", "One line.", id="first paragraph only"),
         pytest.param("Wrapped over\ntwo lines.", "Wrapped over two lines.", id="breaks collapsed"),
-        pytest.param(None, "", id="no docstring"),
+        pytest.param(None, None, id="no docstring"),
+        pytest.param("\n\n", None, id="whitespace only"),
     ],
 )
-def test_summarize(text: str | None, expected: str):
+def test_summarize(text: str | None, expected: str | None):
     assert summarize(text) == expected
 
 

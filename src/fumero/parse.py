@@ -13,7 +13,7 @@ from typing import cast
 
 import griffe
 
-from .config import Config
+from .config import Config, Dialect
 from .error import ModuleNotFound
 from .model import Admonition, Class, Function, ParsedDocstring, Property
 
@@ -75,12 +75,32 @@ def load_module(name: str, config: Config | None = None) -> griffe.Module:
         loaded = griffe.load(
             name,
             docstring_parser=griffe.Parser(config.dialect),
+            docstring_options=_docstring_options(config.dialect),
             allow_inspection=not config.no_inspect,
         )
     except ImportError as error:
         raise ModuleNotFound(name) from error
 
     return cast(griffe.Module, loaded)
+
+
+def _docstring_options(dialect: Dialect) -> griffe.DocstringOptions | None:
+    """The parsing options a dialect needs, which is a fallback style for [`Dialect.AUTO`].
+
+    griffe guesses a style by looking for a section header with a line above it. A docstring that
+    opens with its first section has no line above it, so the guess finds nothing and the docstring
+    goes unparsed: every section renders as prose, which is how a generated class whose docstring
+    is a bare `Attributes:` block ends up printing that block verbatim.
+
+    Naming a fallback settles it. A docstring the heuristics do not recognise is parsed as Google
+    rather than not parsed at all, and one they do recognise is unaffected, since the fallback is
+    only consulted once they have all missed.
+    """
+
+    if dialect is not Dialect.AUTO:
+        return None
+
+    return griffe.AutoOptions(default=griffe.Parser.google)
 
 
 def public_members(

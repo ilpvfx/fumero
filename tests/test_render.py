@@ -298,3 +298,40 @@ def test_render_walks_a_package_that_imports_itself_once(tmp_path: Path):
     written = sorted(page.relative_to(output).as_posix() for page in result.pages)
 
     assert written == ["example/core/Client.mdx", "example/core/index.mdx", "example/index.mdx"]
+
+
+def test_render_leaves_the_description_off_a_card_that_has_none(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """An undocumented class still gets a card, but not an empty description prop.
+
+    Fumadocs lays a card out around the description it is given. Handing it an empty string is not
+    the same as handing it nothing: the card keeps the room the prose would have taken.
+    """
+
+    source = tmp_path / "src" / "bare"
+    source.mkdir(parents=True)
+    _ = (source / "__init__.py").write_text(
+        dedent('''
+            """A package."""
+
+
+            class Request:
+                """
+                Attributes:
+                    name (str):
+                """
+
+                name: str
+        ''')
+    )
+    monkeypatch.syspath_prepend(tmp_path / "src")
+
+    output = tmp_path / "out"
+    module = cast(griffe.Module, griffe.load("bare", docstring_parser=griffe.Parser.google))
+    _ = Renderer(Config(output=output)).render(module, output)
+
+    index = (output / "bare" / "index.mdx").read_text()
+
+    assert '<Card title={"Request"} href={"./Request/"} />' in index
+    assert 'description={""}' not in index

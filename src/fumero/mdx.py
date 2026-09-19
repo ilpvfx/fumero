@@ -126,7 +126,7 @@ def encode_text(
     return "\n".join(lines)
 
 
-def summarize(text: str | None) -> str:
+def summarize(text: str | None) -> str | None:
     """The first paragraph of a docstring, on one line.
 
     This is what a navigation card shows. Convention puts the summary first, so the first paragraph
@@ -137,15 +137,17 @@ def summarize(text: str | None) -> str:
         text: The docstring, or `None`.
 
     Returns:
-        The first paragraph with its line breaks collapsed, or an empty string.
+        The first paragraph with its line breaks collapsed, or `None` for a docstring with no prose
+        to summarise. `None` rather than an empty string, so that [`jsx_props`] leaves the prop off
+        the card entirely: a card given an empty description still lays out the room for one.
     """
 
     if not text:
-        return ""
+        return None
 
     paragraph = text.strip().split("\n\n", 1)[0]
 
-    return " ".join(paragraph.split())
+    return " ".join(paragraph.split()) or None
 
 
 def jsx_props(**props: object) -> str:
