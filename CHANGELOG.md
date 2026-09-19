@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.2.0...fumero-v0.3.0) (2026-09-19)
+
+
+### Features
+
+* uppercase sidebar labels ([#29](https://github.com/ilpvfx/fumero/issues/29)) ([6ddf7d1](https://github.com/ilpvfx/fumero/commit/6ddf7d11b85b98ff1755f3c2bf7a99f0a910ef00))
+
+
+### Bug Fixes
+
+* parse a docstring that opens with a section ([#25](https://github.com/ilpvfx/fumero/issues/25)) ([c6ef7a8](https://github.com/ilpvfx/fumero/commit/c6ef7a8fb1aafa6c14eebaab98b9c45c7d79a1ef))
+* read and write every file as utf-8 with lf endings ([#27](https://github.com/ilpvfx/fumero/issues/27)) ([915a993](https://github.com/ilpvfx/fumero/commit/915a99367a916c62a5f618aee464ff2fffc85092))
+* truncate a long name inside its navigation card ([#26](https://github.com/ilpvfx/fumero/issues/26)) ([dd5afa3](https://github.com/ilpvfx/fumero/commit/dd5afa355f544e2a3eb23242056dd35239aa5f75))
+
 ## [0.2.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.1.0...fumero-v0.2.0) (2026-08-10)
 
 
