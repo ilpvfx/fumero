@@ -19,7 +19,7 @@ _fumero: { kind: module }
 {% if module.modules %}
 ## Modules [#section-modules]
 
-<Cards>
+<Cards className="{{ macros.card_grid }}">
 {% for card in module.modules %}
 <Card {{ jsx_props(title=card.name, description=(card.docstring | summarize), href="./" ~ card.name ~ "/") }} />
 {% endfor %}
@@ -29,7 +29,7 @@ _fumero: { kind: module }
 {% if module.classes %}
 ## Classes [#section-classes]
 
-<Cards>
+<Cards className="{{ macros.card_grid }}">
 {% for class in module.classes %}
 <Card {{ jsx_props(title=class.name, description=(class.docstring.description | summarize), href="./" ~ class.name ~ "/") }} />
 {% endfor %}

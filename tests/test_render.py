@@ -335,3 +335,32 @@ def test_render_leaves_the_description_off_a_card_that_has_none(
 
     assert '<Card title={"Request"} href={"./Request/"} />' in index
     assert 'description={""}' not in index
+
+
+def test_render_keeps_a_long_name_inside_its_navigation_card(
+    render: Callable[..., tuple[Path, Result]],
+):
+    """A generated class name is one long unbreakable word.
+
+    Fumadocs' `Card` sets no wrapping on its title and no overflow on its box, so such a name runs
+    out past the border and under the opaque card beside it, where it reads as cut off mid-word.
+    The grid holds the title to one line and ellipsises it instead, and clamps the description in
+    the same breath, because cards sit in a grid and one long docstring otherwise sets the height
+    of every card in its row.
+
+    The rule is attached to the grid rather than to each card so that it is written once per
+    section, not once per class, which matters on a generated client holding hundreds of models.
+    """
+
+    output, _ = render()
+
+    index = (output / "example" / "index.mdx").read_text()
+    klass = (output / "example" / "Client" / "index.mdx").read_text()
+
+    for page in (index, klass):
+        assert "[&_[data-card]>h3]:truncate" in page
+        assert "[&_[data-card]>p]:line-clamp-3" in page
+
+    # once per section, never on the cards themselves
+    assert index.count("[&_[data-card]>h3]:truncate") == 2  # modules and classes
+    assert "<Card className=" not in index

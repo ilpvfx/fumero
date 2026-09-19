@@ -16,6 +16,29 @@
      "method": "text-blue-600 dark:text-blue-400",
      "attr": "text-red-600 dark:text-red-400",
    } %}
+{# The rule a grid of navigation cards carries, reaching its cards through the `data-card`
+   attribute fumadocs already marks each one with.
+
+   Fumadocs' `Card` titles in prose, which is right for a page written by hand and wrong for one
+   written from source. A generated class name is a single unbreakable word, routinely longer than
+   the column holding it, and the stock card sets no wrapping on its title and no overflow on its
+   box: the name runs out past the border and under the opaque card beside it, where it reads as
+   cut off mid-word rather than as escaping.
+
+   The title is held to one line and ellipsised. A grid of cards is read by running an eye down a
+   column of names, and a name that wraps to three lines costs that scan more than the tail of the
+   name is worth on a page you are only passing through. Worth knowing when reading one: generated
+   names in a family often differ only in their tails, so two cards here can read alike. The whole
+   name is on the page the card leads to, and in the sidebar entry beside it.
+
+   The description is clamped for the same reason, and clamping is also what holds a row to a
+   single height, since cards sit in a grid and one long docstring otherwise sets the height of
+   every card beside it.
+
+   On the grid rather than on each card, which is the difference between one of these per section
+   and a few hundred per page on a generated client. #}
+{% set card_grid = "[&_[data-card]>h3]:truncate [&_[data-card]>p]:line-clamp-3" %}
+
 {% macro badge(kind) -%}
 <span className="not-prose font-mono text-[11px] {{ kind_colours.get(kind, 'text-fd-muted-foreground') }}">{{ kind }}</span>
 {%- endmacro %}
