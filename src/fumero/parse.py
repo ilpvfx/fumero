@@ -77,6 +77,7 @@ def load_module(name: str, config: Config | None = None) -> griffe.Module:
             docstring_parser=griffe.Parser(config.dialect),
             docstring_options=_docstring_options(config.dialect),
             allow_inspection=not config.no_inspect,
+            try_relative_path=False,
         )
     except ImportError as error:
         raise ModuleNotFound(name) from error
