@@ -27,7 +27,7 @@ const body = raw
 
 const mdx = `---
 title: "Changelog"
-icon: "History"
+icon: "RotateCcwClock"
 ---
 
 ${body}`;
