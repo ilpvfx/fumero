@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/ilpvfx/fumero/compare/fumero-v0.3.0...fumero-v0.3.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* only load modules by import path ([#33](https://github.com/ilpvfx/fumero/issues/33)) ([7d2ca1a](https://github.com/ilpvfx/fumero/commit/7d2ca1a81e8a42368ab8cb7bf9dc617feba51f5c))
+* use an existing lucide icon for the changelog page ([#34](https://github.com/ilpvfx/fumero/issues/34)) ([7b7cac1](https://github.com/ilpvfx/fumero/commit/7b7cac1db8d2661783942cc28097c9a65172c61f))
+
 ## [0.3.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.2.0...fumero-v0.3.0) (2026-09-19)
 
 
