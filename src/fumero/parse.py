@@ -767,24 +767,25 @@ def strip_module_prefix(annotation: str, module: str) -> str:
     return own.sub(r"\1", annotation)
 
 
-def _own_types(annotation: object, module: str) -> tuple[str, ...]:
-    """The names in `annotation` that `module` defines, spelled as the annotation spells them.
+def _own_types(annotation: object, module: str) -> dict[str, str]:
+    """The names in `annotation` that `module` defines, each mapped to the path it resolves to.
 
     Read from griffe's resolution rather than from the text, because the text cannot settle it. A
     module that imports `pathlib.Path` and also defines a `Path` of its own writes both as `Path`,
-    and only the name each one resolves to says which is which.
+    and only the name each one resolves to says which is which. So do two modules of one package
+    that each define an `Error`.
     """
 
     if not isinstance(annotation, griffe.Expr):
-        return ()
+        return {}
 
     prefix = f"{module}."
 
-    return tuple(
-        name.name
+    return {
+        name.name: name.canonical_path
         for name in annotation.iterate()
         if isinstance(name, griffe.ExprName) and name.canonical_path.startswith(prefix)
-    )
+    }
 
 
 def _annotation(annotation: object, module: str) -> str:

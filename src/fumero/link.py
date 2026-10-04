@@ -98,15 +98,19 @@ class LinkTable(Mapping[str, str]):
 
         return self._routes.get(path)
 
-    def types_in(self, types: Sequence[str], scope: str | None = None) -> dict[str, str] | None:
+    def types_in(self, types: Mapping[str, str], scope: str | None = None) -> dict[str, str] | None:
         """The name to URL pairs for the documented types a signature names.
 
         This is what lets a rendered signature turn its types into links. It is given the names
         the parser resolved rather than a string to search, because a name alone cannot say what
         it refers to: `Path` is `pathlib.Path` in one module and a documented class in another.
 
+        Each name is looked up by the path it resolves to before its spelling, so two modules that
+        each define an `Error` link their own.
+
         Args:
-            types: Names the documented module defines, spelled as the annotation spells them.
+            types: Names the documented module defines, spelled as the annotation spells them,
+                each mapped to the full path it resolves to.
             scope: The page being rendered. It is never linked, so a class's own signature and
                 attributes do not link back to the page you are already reading.
 
@@ -116,7 +120,9 @@ class LinkTable(Mapping[str, str]):
         """
 
         found = {
-            name: self._routes[name] for name in types if name in self._routes and name != scope
+            name: href
+            for name, path in types.items()
+            if name != scope and (href := self._routes.get(path) or self._routes.get(name))
         }
 
         return found or None
@@ -176,6 +182,12 @@ def _collect(module: griffe.Module, prefix: list[str], config: Config) -> dict[s
         class_page = config.href(base)
         owners = _spellings(path, cls.name)
         routes.update({name: class_page for name in owners})
+        # where the class is defined, which is what a signature's types resolve to. a class
+        # re-exported from several places keeps the first page it was collected on.
+        try:
+            _ = routes.setdefault(cls.canonical_path, class_page)
+        except (griffe.AliasResolutionError, griffe.CyclicAliasError):
+            pass
         routes.update(_anchors(cls, class_page, owners, config))
 
         # the renderer nests exactly one level deep, so these are the only nested classes with

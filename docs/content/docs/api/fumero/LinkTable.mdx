@@ -117,7 +117,7 @@ The URL, or `None` when the path names nothing documented.
 
 </div>
 
-<PdxFunction name={"types_in"} definition={"def types_in(\n    types: Sequence[str],\n    scope: str | None = None,\n) -> dict[str, str] | None"}>
+<PdxFunction name={"types_in"} definition={"def types_in(\n    types: Mapping[str, str],\n    scope: str | None = None,\n) -> dict[str, str] | None"}>
 
 The name to URL pairs for the documented types a signature names.
 
@@ -125,14 +125,18 @@ This is what lets a rendered signature turn its types into links. It is given th
 the parser resolved rather than a string to search, because a name alone cannot say what
 it refers to: `Path` is `pathlib.Path` in one module and a documented class in another.
 
+Each name is looked up by the path it resolves to before its spelling, so two modules that
+each define an `Error` link their own.
+
 
 
 
 
 <PdxParameters>
 
-<PdxParameter name={"types"} type={"Sequence[str]"}>
-Names the documented module defines, spelled as the annotation spells them.
+<PdxParameter name={"types"} type={"Mapping[str, str]"}>
+Names the documented module defines, spelled as the annotation spells them,
+each mapped to the full path it resolves to.
 </PdxParameter>
 
 <PdxParameter name={"scope"} type={"str | None"} value={"None"}>
