@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.3.0...fumero-v0.4.0) (2026-10-04)
+
+
+### Features
+
+* document packages split across distributions with pkgutil.extend_path ([#41](https://github.com/ilpvfx/fumero/issues/41)) ([ae21e1c](https://github.com/ilpvfx/fumero/commit/ae21e1ccef03b298954eeb66331ef8fa7da26870))
+
+
+### Bug Fixes
+
+* only load modules by import path ([#33](https://github.com/ilpvfx/fumero/issues/33)) ([7d2ca1a](https://github.com/ilpvfx/fumero/commit/7d2ca1a81e8a42368ab8cb7bf9dc617feba51f5c))
+* use an existing lucide icon for the changelog page ([#34](https://github.com/ilpvfx/fumero/issues/34)) ([7b7cac1](https://github.com/ilpvfx/fumero/commit/7b7cac1db8d2661783942cc28097c9a65172c61f))
+
 ## [0.3.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.2.0...fumero-v0.3.0) (2026-09-19)
 
 
