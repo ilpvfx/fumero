@@ -284,6 +284,9 @@ the whole package, `example.core` reads that subtree on its own.
 A module is read from its source where there is source to read. Where there is not, it is
 imported and read as the interpreter holds it, unless <PdxRef href="/api/fumero/Config#no_inspect">Config.no_inspect</PdxRef> forbids it.
 
+A package whose `__init__` extends its `__path__` with `pkgutil.extend_path` is read whole,
+including the submodules that other distributions install beside it on `sys.path`.
+
 
 ```python
 module = load_module("example")

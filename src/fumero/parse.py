@@ -7,8 +7,10 @@ Start at [`load_module`], which reads a module and hands back the tree the rest 
 takes apart.
 """
 
+import ast
 import re
 from collections.abc import Sequence
+from pathlib import Path
 from typing import cast
 
 import griffe
@@ -53,6 +55,9 @@ def load_module(name: str, config: Config | None = None) -> griffe.Module:
     A module is read from its source where there is source to read. Where there is not, it is
     imported and read as the interpreter holds it, unless [`Config.no_inspect`] forbids it.
 
+    A package whose `__init__` extends its `__path__` with `pkgutil.extend_path` is read whole,
+    including the submodules that other distributions install beside it on `sys.path`.
+
     Args:
         name: An importable module path.
         config: Supplies the docstring dialect, and whether a module with no source may be
@@ -71,18 +76,76 @@ def load_module(name: str, config: Config | None = None) -> griffe.Module:
     """
 
     config = config or Config()
+    loader = griffe.GriffeLoader(
+        docstring_parser=griffe.Parser(config.dialect),
+        docstring_options=_docstring_options(config.dialect),
+        allow_inspection=not config.no_inspect,
+    )
+    loader.finder = _ExtendedPathFinder()
     try:
-        loaded = griffe.load(
-            name,
-            docstring_parser=griffe.Parser(config.dialect),
-            docstring_options=_docstring_options(config.dialect),
-            allow_inspection=not config.no_inspect,
-            try_relative_path=False,
-        )
+        loaded = loader.load(name, try_relative_path=False)
     except ImportError as error:
         raise ModuleNotFound(name) from error
 
     return cast(griffe.Module, loaded)
+
+
+class _ExtendedPathFinder(griffe.ModuleFinder):
+    """griffe's finder, which also looks where a package extends its `__path__` to.
+
+    `pkgutil.extend_path` adds every directory of the package's name on `sys.path` to the package,
+    which is how one package is split across distributions that install apart. griffe only treats
+    a package as split when its `__init__` holds nothing but that call, and otherwise finds just
+    the submodules beside the `__init__`.
+    """
+
+    def submodules(self, module: griffe.Module) -> list[tuple[tuple[str, ...], Path]]:
+        found = super().submodules(module)
+        if not _extends_path(module):
+            return found
+
+        names = {parts for parts, _ in found}
+        own = cast(Path, module.filepath).parent
+        for root in self.search_paths:
+            directory = root.joinpath(*module.path.split("."))
+            if directory == own or not directory.is_dir():
+                continue
+            for parts, path in self.iter_submodules(directory):
+                # the first directory on the path wins, as it does on import
+                if parts not in names:
+                    names.add(parts)
+                    found.append((parts, path))
+
+        # a parent package has to be loaded before the modules inside it
+        return sorted(found, key=lambda submodule: len(submodule[0]))
+
+
+def _installed_apart(package: griffe.Module, member: griffe.Object | griffe.Alias) -> bool:
+    """Whether `member` is a submodule found outside the package's own directory."""
+
+    if not isinstance(member, griffe.Module):
+        return False
+    if not isinstance(package.filepath, Path) or not isinstance(member.filepath, Path):
+        return False
+
+    return package.filepath.parent not in member.filepath.parents
+
+
+def _extends_path(module: griffe.Module) -> bool:
+    """Whether the module is a package whose `__init__` assigns `__path__` from `extend_path`."""
+
+    if not isinstance(module.filepath, Path) or module.filepath.name != "__init__.py":
+        return False
+
+    for node in ast.walk(ast.parse(module.filepath.read_text(encoding="utf-8"))):
+        match node:
+            case ast.Assign(
+                targets=[ast.Name(id="__path__")],
+                value=ast.Call(func=ast.Attribute(attr="extend_path") | ast.Name(id="extend_path")),
+            ):
+                return True
+
+    return False
 
 
 def _docstring_options(dialect: Dialect) -> griffe.DocstringOptions | None:
@@ -110,7 +173,9 @@ def public_members(
     """The members of `module` of one kind that belong in the documentation.
 
     `__all__` decides what is public. A module that defines one is taken at its word; a module that
-    does not falls back to the convention that a leading underscore means private.
+    does not falls back to the convention that a leading underscore means private. So does a
+    submodule another distribution installs into the package, which the package's `__all__` cannot
+    name without breaking a star import wherever that distribution is missing.
 
     A class or a function is collected wherever it is bound, since re-exporting one from a package
     is how a curated API is written. A submodule is collected only where it lives, which is what
@@ -128,7 +193,10 @@ def public_members(
     exports = None if module.exports is None else {str(export) for export in module.exports}
 
     def is_public(name: str, member: griffe.Object | griffe.Alias) -> bool:
-        exported = not name.startswith("_") if exports is None else name in exports
+        if exports is None or _installed_apart(module, member):
+            exported = not name.startswith("_")
+        else:
+            exported = name in exports
 
         return exported and not config.excludes(member)
 
