@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/ilpvfx/fumero/compare/fumero-v0.4.0...fumero-v0.4.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* link a signature's types by the path they resolve to ([#42](https://github.com/ilpvfx/fumero/issues/42)) ([22ce5c3](https://github.com/ilpvfx/fumero/commit/22ce5c3f0a607762ebf1dda7a4979fe64cad844d))
+
 ## [0.4.0](https://github.com/ilpvfx/fumero/compare/fumero-v0.3.0...fumero-v0.4.0) (2026-10-04)
 
 
