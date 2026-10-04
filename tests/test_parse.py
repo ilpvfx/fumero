@@ -46,15 +46,55 @@ def test_load_module_reads_a_package_on_the_path(tmp_path: Path, monkeypatch: py
     assert module.docstring.value == "An example package."
 
 
+def test_load_module_reads_a_package_split_across_the_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Each half is installed by its own distribution, so they land on different path entries."""
+
+    core = tmp_path / "core" / "example"
+    core.mkdir(parents=True)
+    _ = (core / "__init__.py").write_text(
+        dedent(
+            '''
+            """An example package."""
+
+            import pkgutil
+
+            __path__ = pkgutil.extend_path(__path__, __name__)
+
+            __all__ = []
+            '''
+        )
+    )
+    qt = tmp_path / "qt" / "example" / "qt"
+    qt.mkdir(parents=True)
+    _ = (qt / "__init__.py").write_text('"""The Qt half."""')
+    monkeypatch.syspath_prepend(tmp_path / "qt")
+    monkeypatch.syspath_prepend(tmp_path / "core")
+
+    module = load_module("example")
+
+    assert module.docstring is not None
+    assert module.docstring.value == "An example package."
+    qt_docstring = cast(griffe.Module, module.members["qt"]).docstring
+    assert qt_docstring is not None
+    assert qt_docstring.value == "The Qt half."
+    assert load_module("example.qt").path == "example.qt"
+    # `__all__` cannot name a half that may not be installed, so it does not hide one
+    assert [member.name for member in public_members(module, griffe.Kind.MODULE, Config())] == [
+        "qt"
+    ]
+
+
 def test_load_module_hands_inspection_to_griffe(monkeypatch: pytest.MonkeyPatch):
     captured: dict[str, object] = {}
 
-    def load(name: str, **options: object) -> griffe.Module:
-        captured.update(options)
+    def load(loader: griffe.GriffeLoader, name: str, **_: object) -> griffe.Module:
+        captured["allow_inspection"] = loader.allow_inspection
 
         return griffe.Module(name)
 
-    monkeypatch.setattr(griffe, "load", load)
+    monkeypatch.setattr(griffe.GriffeLoader, "load", load)
 
     _ = load_module("example")
     assert captured["allow_inspection"] is True
