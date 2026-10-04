@@ -89,16 +89,36 @@ def test_resolve_a_self_path(table: LinkTable, path: str, scope: str | None, exp
 @pytest.mark.parametrize(
     "types, scope, expected",
     [
-        pytest.param(["Client"], None, {"Client": "/api/example/Client"}, id="documented type"),
-        pytest.param(["Client"], "Client", None, id="the page it is written on"),
-        pytest.param(["int"], None, None, id="nothing documented"),
-        pytest.param([], None, None, id="nothing in the annotation"),
+        pytest.param(
+            {"Client": "example.Client"},
+            None,
+            {"Client": "/api/example/Client"},
+            id="documented type",
+        ),
+        pytest.param({"Client": "example.Client"}, "Client", None, id="the page it is written on"),
+        pytest.param({"int": "int"}, None, None, id="nothing documented"),
+        pytest.param({}, None, None, id="nothing in the annotation"),
     ],
 )
 def test_types_in(
-    table: LinkTable, types: list[str], scope: str | None, expected: dict[str, str] | None
+    table: LinkTable, types: dict[str, str], scope: str | None, expected: dict[str, str] | None
 ):
     assert table.types_in(types, scope) == expected
+
+
+def test_types_in_links_a_shared_name_to_the_type_it_resolves_to():
+    """Two modules that each define an `Error` link their own, whichever is collected last."""
+
+    modules = {
+        "__init__.py": '"""An example package."""',
+        "httpx.py": 'class Error:\n    """What httpx raises."""',
+        "qt.py": 'class Error:\n    """What qt emits."""',
+    }
+    with griffe.temporary_visited_package("example", modules) as package:
+        table = LinkTable.collect(package, Config(base_url="/api"))
+
+    assert table.types_in({"Error": "example.httpx.Error"}) == {"Error": "/api/example/httpx/Error"}
+    assert table.types_in({"Error": "example.qt.Error"}) == {"Error": "/api/example/qt/Error"}
 
 
 @pytest.mark.parametrize(

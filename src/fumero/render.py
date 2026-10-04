@@ -10,7 +10,7 @@ and the caller decides whether any of that is worth showing anyone.
 
 import json
 import shutil
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
@@ -152,7 +152,7 @@ class Renderer:
         self._environment.globals.update(template_globals)
         self._environment.filters.update(template_filters)
 
-    def _links_for(self, types: Sequence[str]) -> dict[str, str] | None:
+    def _links_for(self, types: Mapping[str, str]) -> dict[str, str] | None:
         """Every documented type a signature names, so the components can link them."""
 
         return self._links.types_in(types, self._scope)
@@ -171,9 +171,13 @@ class Renderer:
             The name to URL pairs, or `None` when the signature names nothing documented.
         """
 
-        types = [name for parameter in docstring.parameters for name in parameter.types]
+        types = {
+            name: path
+            for parameter in docstring.parameters
+            for name, path in parameter.types.items()
+        }
         if docstring.returns is not None:
-            types.extend(docstring.returns.types)
+            types.update(docstring.returns.types)
 
         return self._links.types_in(types, self._scope)
 

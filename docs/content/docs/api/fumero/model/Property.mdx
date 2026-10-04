@@ -16,7 +16,7 @@ only in which fields happen to be filled in.
 
 ## Constructor [#section-constructor-parameters]
 
-<PdxConstructor definition={"Property(\n    name: str,\n    annotation: str | None,\n    description: str | None,\n    value: str | None,\n    types: tuple[str, ...] = (),\n)"}>
+<PdxConstructor definition={"Property(\n    name: str,\n    annotation: str | None,\n    description: str | None,\n    value: str | None,\n    types: dict[str, str] = dict(),\n)"}>
 
 <PdxParameter name={"name"} type={"str"}>
 The name as written in the source.
@@ -34,10 +34,11 @@ Prose from the docstring, or `None` when the item is undocumented.
 The default or assigned value as source text, or `None`.
 </PdxParameter>
 
-<PdxParameter name={"types"} type={"tuple[str, ...]"} value={"()"}>
+<PdxParameter name={"types"} type={"dict[str, str]"} value={"dict()"}>
 The names in the annotation that the documented module defines, as the annotation
-writes them. Only these are worth linking: two packages can name a type alike, and
-what a name refers to is settled where it is written rather than by how it reads.
+writes them, each mapped to the full path it resolves to. Only these are worth
+linking: two packages, or two modules of one package, can name a type alike, and what
+a name refers to is settled where it is written rather than by how it reads.
 </PdxParameter>
 
 </PdxConstructor>
@@ -105,10 +106,11 @@ The default or assigned value as source text, or `None`.
 </div>
 
 
-<PdxAttribute name={"types"} type={"tuple[str, ...]"} value={"()"}>
+<PdxAttribute name={"types"} type={"dict[str, str]"} value={"field(default_factory=dict)"}>
 The names in the annotation that the documented module defines, as the annotation
-writes them. Only these are worth linking: two packages can name a type alike, and
-what a name refers to is settled where it is written rather than by how it reads.
+writes them, each mapped to the full path it resolves to. Only these are worth
+linking: two packages, or two modules of one package, can name a type alike, and what
+a name refers to is settled where it is written rather than by how it reads.
 </PdxAttribute>
 
 
