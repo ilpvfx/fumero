@@ -59,7 +59,7 @@ def package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> griffe.Module:
         dedent('''
             """The core module."""
 
-            __all__ = ["connect"]
+            __all__ = ["TIMEOUT", "connect"]
 
             TIMEOUT = 1.0
 

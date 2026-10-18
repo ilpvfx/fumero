@@ -245,7 +245,10 @@ def is_own_member(
 
 
 def module_attributes(module: griffe.Module, config: Config) -> list[Property]:
-    """The module's public attributes, sorted by name.
+    """The module's public attributes, sorted by name, each described by its own docstring.
+
+    What is public is decided as for classes and functions, by `__all__` where the module defines
+    one: see [`public_members`]. A name the module only imports for its own use stays off its page.
 
     Type aliases are attributes as far as griffe is concerned, which is what lets a signature link
     to one.
@@ -259,9 +262,10 @@ def module_attributes(module: griffe.Module, config: Config) -> list[Property]:
     """
 
     attributes = [
-        _attribute_property(attribute)
-        for attribute in module.attributes.values()
-        if not attribute.name.startswith("_") and not config.excludes(attribute)
+        _attribute_property(attribute, attribute.docstring.value if attribute.docstring else None)
+        for attribute in cast(
+            list[griffe.Attribute], public_members(module, griffe.Kind.ATTRIBUTE, config)
+        )
     ]
 
     return sorted(attributes, key=lambda attribute: attribute.name)
@@ -404,7 +408,7 @@ def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> Pa
     returns = _return_property(parent)
 
     if not parent.docstring:
-        return ParsedDocstring(parameters=parameters, returns=returns)
+        return ParsedDocstring(parameters=parameters, returns=_worth_a_section(returns))
 
     description: str | None = None
     raises: list[Property] = []
@@ -434,16 +438,22 @@ def parse_docstring(parent: griffe.Alias | griffe.Class | griffe.Function) -> Pa
             case griffe.DocstringSectionExamples():
                 admonitions.extend(_examples(section))
 
-    return ParsedDocstring(description, parameters, attributes, raises, admonitions, returns)
+    return ParsedDocstring(
+        description, parameters, attributes, raises, admonitions, _worth_a_section(returns)
+    )
 
 
 def _described_parameters(
     parent: griffe.Alias | griffe.Class | griffe.Function,
     documented: list[griffe.DocstringParameter],
 ) -> list[Property]:
-    """The signature's parameters, each carrying the prose its `Args:` entry gave it."""
+    """The signature's parameters, each carrying the prose its `Args:` entry gave it.
 
-    descriptions = {entry.name: entry.description for entry in documented}
+    An entry for `*args` or `**kwargs` is written with its stars, which the parameter's name does
+    not have.
+    """
+
+    descriptions = {entry.name.lstrip("*"): entry.description for entry in documented}
 
     return [
         _parameter_property(parameter, parent.package.name, descriptions.get(parameter.name))
@@ -479,6 +489,20 @@ def _return_property(parent: griffe.Alias | griffe.Class | griffe.Function) -> P
     annotation = _annotation(parent.returns, module) if parent.returns is not None else None
 
     return Property(parent.name, annotation, None, None, _own_types(parent.returns, module))
+
+
+def _worth_a_section(returns: Property | None) -> Property | None:
+    """The return value, unless a section for it could only say `None`.
+
+    A function that returns `None`, or whose return type is not written down, and whose docstring
+    says nothing about what it returns, has no return worth a section. Its signature already shows
+    `-> None` where it is written.
+    """
+
+    if returns is not None and returns.description is None and returns.annotation in (None, "None"):
+        return None
+
+    return returns
 
 
 def _raise_property(documented: griffe.DocstringRaise, module: str) -> Property:
@@ -526,10 +550,45 @@ def _parameter_property(
     annotation = (
         _annotation(parameter.annotation, module) if parameter.annotation is not None else None
     )
-    value = str(parameter.default) if parameter.default is not None else None
 
     return Property(
-        parameter.name, annotation, description, value, _own_types(parameter.annotation, module)
+        parameter.name,
+        annotation,
+        description,
+        _default(parameter),
+        _own_types(parameter.annotation, module),
+    )
+
+
+def _default(parameter: griffe.Parameter) -> str | None:
+    """A parameter's default as a reader should see it, or `None` when it has none.
+
+    A default that names something private, such as a sentinel told apart from `None`, is shown as
+    `...`: the reader can neither see nor pass the name, and only needs to know that the parameter
+    has a default, which its description explains. `*args` and `**kwargs` have none, though griffe
+    records the empty tuple and dict they start as.
+    """
+
+    variadic = {griffe.ParameterKind.var_positional, griffe.ParameterKind.var_keyword}
+    if parameter.default is None or parameter.kind in variadic:
+        return None
+
+    return "..." if _names_private(parameter.default) else str(parameter.default)
+
+
+def _names_private(expression: object) -> bool:
+    """Whether `expression` names something private, such as `_KEEP` or `_field(init=False)`.
+
+    A leading underscore marks a name private, as it does everywhere else here, but a dunder such
+    as `__debug__` is not. Only a parsed expression can be checked; a default read from a compiled
+    module arrives as text, and is shown as it is.
+    """
+
+    return isinstance(expression, griffe.Expr) and any(
+        isinstance(part, griffe.ExprName)
+        and part.name.startswith("_")
+        and not (part.name.startswith("__") and part.name.endswith("__"))
+        for part in expression.iterate()
     )
 
 
@@ -646,9 +705,8 @@ def _parameter_parts(parent: griffe.Alias | griffe.Class | griffe.Function) -> l
         else:
             separator = "="
 
-        variadic = {griffe.ParameterKind.var_positional, griffe.ParameterKind.var_keyword}
-        if parameter.default is not None and parameter.kind not in variadic:
-            part += f"{separator}{parameter.default}"
+        if (default := _default(parameter)) is not None:
+            part += f"{separator}{default}"
 
         parts.append(part)
 
@@ -702,7 +760,13 @@ def _attribute_property(attribute: griffe.Attribute, description: str | None = N
         if attribute.annotation is not None
         else None
     )
-    value = str(attribute.value) if attribute.value is not None else None
+    # a value that names something private says nothing a reader can use, so the attribute is shown
+    # with its type alone
+    value = (
+        str(attribute.value)
+        if attribute.value is not None and not _names_private(attribute.value)
+        else None
+    )
 
     return Property(
         attribute.name,

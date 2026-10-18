@@ -301,6 +301,37 @@ def test_module_attributes_are_public_and_sorted(visit: Callable[[str], griffe.M
     assert attributes[1].value == "30"
 
 
+def test_module_attributes_follow_dunder_all(visit: Callable[[str], griffe.Module]):
+    module = visit("""
+        __all__ = ["TIMEOUT"]
+
+        TIMEOUT = 30
+        RETRIES = 3
+    """)
+
+    attributes = module_attributes(module, Config())
+
+    assert [attribute.name for attribute in attributes] == ["TIMEOUT"]
+
+
+def test_module_attributes_are_described_by_their_own_docstrings(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit('''
+        TIMEOUT: int = 30
+        """Seconds to wait for an answer."""
+
+        RETRIES = 3
+    ''')
+
+    attributes = module_attributes(module, Config())
+
+    assert {attribute.name: attribute.description for attribute in attributes} == {
+        "RETRIES": None,
+        "TIMEOUT": "Seconds to wait for an answer.",
+    }
+
+
 @pytest.mark.parametrize(
     "source, expected",
     [
@@ -509,6 +540,27 @@ def test_parse_docstring_takes_parameters_from_the_signature(
     assert docstring.parameters[1].value == "8080"
 
 
+def test_parse_docstring_describes_variadic_parameters(visit: Callable[[str], griffe.Module]):
+    module = visit('''
+        def commit(*references: str, **options: str) -> str:
+            """Register them.
+
+            Args:
+                *references: The representations.
+                **options: How to register them.
+            """
+    ''')
+
+    parameters = parse_docstring(cast(griffe.Function, module["commit"])).parameters
+
+    assert [
+        (parameter.name, parameter.value, parameter.description) for parameter in parameters
+    ] == [
+        ("references", None, "The representations."),
+        ("options", None, "How to register them."),
+    ]
+
+
 def test_parse_docstring_describes_the_return_value(visit: Callable[[str], griffe.Module]):
     module = visit('''
         import pathlib
@@ -606,14 +658,71 @@ def test_parse_docstring_describes_declared_attributes(visit: Callable[[str], gr
 def test_parse_docstring_of_an_undocumented_function_still_reads_the_signature(
     visit: Callable[[str], griffe.Module],
 ):
-    module = visit("def connect(host: str) -> None: ...")
+    module = visit("def connect(host: str) -> bool: ...")
 
     docstring = parse_docstring(cast(griffe.Function, module["connect"]))
 
     assert docstring.description is None
     assert [parameter.name for parameter in docstring.parameters] == ["host"]
     assert docstring.returns is not None
-    assert docstring.returns.annotation == "None"
+    assert docstring.returns.annotation == "bool"
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        pytest.param("def close() -> None: ...", id="returns None"),
+        pytest.param("def close(): ...", id="unannotated"),
+        pytest.param('def close() -> None:\n    """Close it."""', id="documented"),
+    ],
+)
+def test_parse_docstring_has_no_return_for_a_function_that_returns_nothing(
+    visit: Callable[[str], griffe.Module], source: str
+):
+    module = visit(source)
+
+    assert parse_docstring(cast(griffe.Function, module["close"])).returns is None
+
+
+def test_a_default_that_names_something_private_is_shown_as_an_ellipsis(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit("""
+        _KEEP = object()
+
+
+        def change(tag: str | None = _KEEP, name: str = "ball", debug: bool = __debug__): ...
+    """)
+    function = cast(griffe.Function, module["change"])
+
+    assert [parameter.value for parameter in parse_docstring(function).parameters] == [
+        "...",
+        "'ball'",
+        "__debug__",
+    ]
+    assert parse_function_definition(function, width=200) == (
+        "def change(tag: str | None = ..., name: str = 'ball', debug: bool = __debug__)"
+    )
+
+
+def test_a_value_that_names_something_private_is_left_off_an_attribute(
+    visit: Callable[[str], griffe.Module],
+):
+    module = visit("""
+        from dataclasses import field as _field
+
+
+        class Model:
+            extra: dict[str, str] = _field(default_factory=dict)
+            kind: str = "asset"
+    """)
+
+    attributes = parse_class(cast(griffe.Class, module["Model"])).attributes
+
+    assert {attribute.name: attribute.value for attribute in attributes} == {
+        "extra": None,
+        "kind": "'asset'",
+    }
 
 
 @pytest.mark.parametrize(
