@@ -225,11 +225,11 @@ def _anchors(
     """`Owner.member` to that member's anchor on `page`, for every spelling of the owner.
 
     A nested class answers to both `Options` and `Client.Options`, so its members have to answer
-    to both too.
+    to both too. Inherited members count, since a class's page renders those as well.
     """
 
     routes: dict[str, str] = {}
-    for member in owner.members.values():
+    for member in owner.all_members.values():
         if member.name.startswith("_") or config.excludes(member):
             continue
 

@@ -35,7 +35,7 @@ def table() -> LinkTable:
         "core.py": dedent('''
             """The core module."""
 
-            __all__ = ["connect"]
+            __all__ = ["TIMEOUT", "connect"]
 
             TIMEOUT = 1.0
 
@@ -155,3 +155,26 @@ def test_collect_walks_a_package_that_imports_itself_once():
     assert table.resolve("example.core") == "/api/example/core"
     assert table.resolve("example.core.connect") == "/api/example/core#connect"
     assert not [href for href in table.values() if href.count("/example") > 1]
+
+
+def test_collect_links_an_inherited_member_to_the_page_that_renders_it():
+    modules = {
+        "__init__.py": dedent('''
+            """An example package."""
+
+            __all__ = ["Base", "Model"]
+
+
+            class Base:
+                def reload(self) -> None: ...
+
+
+            class Model(Base):
+                """Call [`reload`] to start again."""
+        '''),
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        table = LinkTable.collect(package, Config(base_url="/api"))
+
+    assert table.resolve("reload", scope="Model") == "/api/example/Model#reload"
