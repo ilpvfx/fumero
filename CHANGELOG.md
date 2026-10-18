@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/ilpvfx/fumero/compare/fumero-v0.4.1...fumero-v0.4.2) (2026-10-18)
+
+
+### Bug Fixes
+
+* close rendering gaps in defaults, attributes, links and returns ([#52](https://github.com/ilpvfx/fumero/issues/52)) ([da6bbd8](https://github.com/ilpvfx/fumero/commit/da6bbd81fca3b87f127c2bf6f38bba39e2942886))
+
 ## [0.4.1](https://github.com/ilpvfx/fumero/compare/fumero-v0.4.0...fumero-v0.4.1) (2026-10-04)
 
 
