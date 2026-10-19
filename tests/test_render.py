@@ -300,6 +300,27 @@ def test_render_walks_a_package_that_imports_itself_once(tmp_path: Path):
     assert written == ["example/core/Client.mdx", "example/core/index.mdx", "example/index.mdx"]
 
 
+def test_render_lists_submodules_by_name_whatever_order_they_are_found_in(tmp_path: Path):
+    # griffe finds submodules in the order the file system lists them, so a page generated on one
+    # machine listed them differently from the same page generated on another
+    modules = {
+        "__init__.py": '"""An example package."""',
+        "alpha.py": '"""The first module."""',
+        "beta.py": '"""The second module."""',
+        "gamma.py": '"""The third module."""',
+    }
+
+    with griffe.temporary_visited_package("example", modules) as package:
+        package.members = {name: package.members[name] for name in ("gamma", "alpha", "beta")}
+        output = tmp_path / "out"
+        _ = Renderer(Config(output=output)).render(package, output)
+
+    index = (output / "example" / "index.mdx").read_text()
+    titles = [line.split('"')[1] for line in index.splitlines() if line.startswith("<Card ")]
+
+    assert titles == ["alpha", "beta", "gamma"]
+
+
 def test_render_leaves_the_description_off_a_card_that_has_none(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

@@ -187,7 +187,8 @@ def public_members(
         config: Supplies the exclude patterns.
 
     Returns:
-        The matching members, in the order the module declares them.
+        The matching members, in the order the module declares them, and submodules, which no
+        module declares, by name.
     """
 
     exports = None if module.exports is None else {str(export) for export in module.exports}
@@ -200,13 +201,18 @@ def public_members(
 
         return exported and not config.excludes(member)
 
-    return [
+    members = [
         member
         for name, member in module.members.items()
         if member.kind is kind
         and is_public(name, member)
         and (kind is not griffe.Kind.MODULE or is_own_member(module, member))
     ]
+    # submodules arrive in the order the file system lists them, which differs between machines
+    if kind is griffe.Kind.MODULE:
+        members.sort(key=lambda member: member.name)
+
+    return members
 
 
 def is_own_member(
