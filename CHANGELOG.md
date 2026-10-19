@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/ilpvfx/fumero/compare/fumero-v0.4.2...fumero-v0.4.3) (2026-10-19)
+
+
+### Bug Fixes
+
+* list submodules by name, the same on every machine ([#54](https://github.com/ilpvfx/fumero/issues/54)) ([94d7299](https://github.com/ilpvfx/fumero/commit/94d729934a6e519da27551c972e93bbe4cccc6e3))
+
 ## [0.4.2](https://github.com/ilpvfx/fumero/compare/fumero-v0.4.1...fumero-v0.4.2) (2026-10-18)
 
 
